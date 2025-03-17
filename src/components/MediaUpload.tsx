@@ -143,23 +143,25 @@ const MediaUpload = ({
         {allFiles.map((item) =>
           item.isExisting ? (
             <div key={`existing-${item.index}`} className="relative border rounded-md overflow-hidden p-2">
-              {type === 'image' && <img src={item?.url} alt={`Existing ${item.index}`} className="w-full h-full object-cover" />}
-              {type === 'video' && <video src={item?.url} controls className="w-full h-full object-cover" />}
-           
-              {onRemoveExisting && (
+                {onRemoveExisting && (
                 <button onClick={() => onRemoveExisting(item.url)} className="text-red-500 hover:text-red-700 p-1">
                   <X className="h-4 w-4" />
                 </button>
               )}
+              {type === 'image' && <img src={item?.url} alt={`Existing ${item.index}`} className="w-full h-full object-cover" />}
+              {type === 'video' && <video src={item?.url} controls className="w-full h-full object-cover" />}
+           
+            
             </div>
           ) : (
             <div key={`new-${item.index}`} className="relative border rounded-md overflow-hidden p-2">
+               <button onClick={() => removeFile(item.index)} className="text-red-500 hover:text-red-700">
+                <X className="h-4 w-4" />
+              </button>
               {type === 'image' && <img src={URL.createObjectURL(item.file)} alt={`Preview ${item.index}`} className="w-full h-full object-cover" />}
               {type === 'video' && <video src={URL.createObjectURL(item.file)} controls className="w-full h-full object-cover" />}
      
-              <button onClick={() => removeFile(item.index)} className="text-red-500 hover:text-red-700 p-1">
-                <X className="h-4 w-4" />
-              </button>
+             
             </div>
           )
         )}
