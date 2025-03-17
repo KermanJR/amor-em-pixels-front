@@ -28,7 +28,7 @@ import { loadStripe } from '@stripe/stripe-js';
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const PLANS = {
-  basic: { photos: 5, videos: 1, musics: 1, durationMonths: 6, price: 'R$25,90' },
+  basic: { photos: 5, videos: 1, musics: 1, durationMonths: 6, price: 'R$29,90' },
   premium: { photos: 8, videos: 1, musics: 1, durationMonths: 12, price: 'R$49,90' },
 };
 
@@ -382,7 +382,7 @@ const Create = () => {
               name="spotifyLink"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Link do Spotify</FormLabel>
+                  <FormLabel>Link do Spotify (Opcional)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ex: https://open.spotify.com/track/..."
@@ -426,7 +426,7 @@ const Create = () => {
           <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Prévia do Seu Site</DialogTitle>
+                <DialogTitle>Prévia do Seu Card Digital</DialogTitle>
                 <DialogDescription>Confira e personalize a URL antes de criar!</DialogDescription>
               </DialogHeader>
               <div className="space-y-6">
@@ -439,6 +439,15 @@ const Create = () => {
                  
                   />
                 </div>
+               
+           
+                <p className="text-lg text-wine-800 font-medium mb-4">
+                  Quer um PDF personalizado do seu Card Digital?
+                </p>
+                <p className="text-gray-700 mb-4">
+                  Faça upgrade para o Premium e baixe seu PDF exclusivo com QR Code no Dashboard após o pagamento!
+                </p>
+                
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Defina a URL (sem hífen - ):</h3>
                   <Input
