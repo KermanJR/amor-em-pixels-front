@@ -32,6 +32,7 @@ const PLANS = {
   premium: { photos: 8, videos: 1, musics: 1, durationMonths: 12, price: 'R$49,90' },
 };
 
+// Atualizar o schema para incluir a senha
 const formSchema = z.object({
   coupleName: z.string().min(3, { message: 'Nome do casal deve ter pelo menos 3 caracteres' }).max(50),
   relationshipStartDate: z.date({ required_error: 'Por favor, selecione a data de início do relacionamento' }),
@@ -40,6 +41,7 @@ const formSchema = z.object({
     (val) => !val || val.includes('spotify.com'),
     { message: 'O link deve ser do Spotify' }
   ),
+  password: z.string().min(4, { message: 'A senha deve ter pelo menos 4 caracteres' }).max(20, { message: 'A senha deve ter no máximo 20 caracteres' }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -64,7 +66,7 @@ const Create = () => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { coupleName: '', relationshipStartDate: null, message: '', spotifyLink: '' },
+    defaultValues: { coupleName: '', relationshipStartDate: null, message: '', spotifyLink: '', password: '' },
   });
 
   useEffect(() => {
@@ -188,6 +190,7 @@ const Create = () => {
         expiration_date: expirationDate.toISOString(),
         status,
         template_type: 'site',
+        password: siteData.formData.password, // Salvar a senha no banco
       };
 
       const { data, error } = await supabase.from('sites').insert([finalSiteData]).select('id').single();
@@ -234,51 +237,6 @@ const Create = () => {
       setIsSubmitting(false);
     }
   };
-
-  /*const generatePDF = async () => {
-    if (!siteData || !siteId) {
-      toast({ title: 'Erro', description: 'Crie o site antes de baixar o PDF.', variant: 'destructive' });
-      return;
-    }
-
-    const { data: site, error } = await supabase.from('sites').select('status').eq('id', siteId).single();
-    if (error) {
-      toast({ title: 'Erro', description: 'Erro ao verificar o status do site.', variant: 'destructive' });
-      return;
-    }
-    if (site.status !== 'active') {
-      toast({ title: 'Acesso Negado', description: 'Complete o pagamento para baixar o PDF.', variant: 'destructive' });
-      return;
-    }
-
-    try {
-      const sitePreviewElement = document.querySelector('.border.rounded-lg.p-4.bg-gray-50');
-      if (!sitePreviewElement) {
-        toast({ title: 'Erro', description: 'Não foi possível encontrar o conteúdo do site para gerar o PDF.', variant: 'destructive' });
-        return;
-      }
-
-      const canvas = await html2canvas(sitePreviewElement, {
-        scale: 2,
-        useCORS: true,
-      });
-      const imgData = canvas.toDataURL('image/png');
-
-      const doc = new jsPDF({
-        format: 'a5',
-        unit: 'mm',
-      });
-      const imgWidth = 148;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-      doc.save(`card-${customUrl}.pdf`);
-      toast({ title: 'Sucesso', description: 'PDF baixado com sucesso!' });
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast({ title: 'Erro', description: 'Falha ao gerar o PDF.', variant: 'destructive' });
-    }
-  };*/
 
   const planLimits = getPlanLimits();
 
@@ -395,6 +353,26 @@ const Create = () => {
               )}
             />
 
+            {/* Novo campo para a senha */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha para Acesso</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Digite uma senha (mín. 4 caracteres)"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>Esta senha será necessária para acessar o site. Compartilhe-a com seu amor!</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Carregando...' : 'Criar e Visualizar'}
             </Button>
@@ -436,18 +414,16 @@ const Create = () => {
                     plan={siteData.plan}
                     media={siteData.media}
                     customUrl={customUrl}
-                 
                   />
                 </div>
-               
-           
+
                 <p className="text-lg text-wine-800 font-medium mb-4">
                   Quer um PDF personalizado do seu Card Digital?
                 </p>
                 <p className="text-gray-700 mb-4">
                   Faça upgrade para o Premium e baixe seu PDF exclusivo com QR Code no Dashboard após o pagamento!
                 </p>
-                
+
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Defina a URL (sem hífen - ):</h3>
                   <Input
@@ -456,8 +432,11 @@ const Create = () => {
                     placeholder="Ex: joaoemaria"
                   />
                   <p className="text-sm text-gray-600">{`${window.location.origin}/${customUrl || '[sua-url]'}`}</p>
+                  {/* Exibir a senha na prévia */}
+                  <p className="text-sm text-gray-600">
+                    Senha para acesso: {siteData.formData.password} (Compartilhe esta senha com seu amor!)
+                  </p>
                 </div>
-               
               </div>
               <DialogFooter className="flex gap-2">
                 <Button variant="outline" onClick={() => setIsPreviewModalOpen(false)}>
