@@ -31,8 +31,12 @@ const PLANS = {
 
 const formSchema = z.object({
   coupleName: z.string().min(3, { message: 'Nome do casal deve ter pelo menos 3 caracteres' }).max(50),
-  specialDate: z.date({ required_error: 'Por favor, selecione uma data' }),
-  relationshipStartDate: z.date({ required_error: 'Por favor, selecione a data de início do relacionamento' }),
+  specialDate: z.date().nullable().refine((val) => val !== null, {
+    message: 'Por favor, selecione uma data',
+  }),
+  relationshipStartDate: z.date().nullable().refine((val) => val !== null, {
+    message: 'Por favor, selecione a data de início do relacionamento',
+  }),
   message: z.string().min(10, { message: 'Mensagem deve ter pelo menos 10 caracteres' }).max(500),
 });
 
@@ -62,7 +66,12 @@ const EditSite = () => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { coupleName: '', message: '' },
+    defaultValues: {
+      coupleName: '',
+      specialDate: null,
+      relationshipStartDate: null,
+      message: '',
+    },
   });
 
   useEffect(() => {
@@ -87,16 +96,31 @@ const EditSite = () => {
         return;
       }
 
+      console.log('Site data from Supabase:', site);
+      console.log('Special Date:', site.form_data.specialDate);
+      console.log('Relationship Start Date:', site.form_data.relationshipStartDate);
+
       setSelectedPlan(site.plan);
       setCustomUrl(site.custom_url);
       setExistingPhotos(site.media.photos || []);
       setExistingVideos(site.media.videos || []);
       setExistingMusics(site.media.musics || []);
+
+      const specialDate = site.form_data.specialDate
+        ? new Date(site.form_data.specialDate)
+        : null;
+      const relationshipStartDate = site.form_data.relationshipStartDate
+        ? new Date(site.form_data.relationshipStartDate)
+        : null;
+
+      const isValidSpecialDate = specialDate && !isNaN(specialDate.getTime());
+      const isValidRelationshipStartDate = relationshipStartDate && !isNaN(relationshipStartDate.getTime());
+
       form.reset({
-        coupleName: site.form_data.coupleName,
-        specialDate: new Date(site.form_data.specialDate),
-        relationshipStartDate: new Date(site.form_data.relationshipStartDate),
-        message: site.form_data.message,
+        coupleName: site.form_data.coupleName || '',
+        specialDate: isValidSpecialDate ? specialDate : null,
+        relationshipStartDate: isValidRelationshipStartDate ? relationshipStartDate : null,
+        message: site.form_data.message || '',
       });
     };
 
@@ -207,10 +231,21 @@ const EditSite = () => {
 
       const expirationDate = selectedPlan === 'free' ? addMonths(new Date(), PLANS.free.durationMonths) : selectedPlan === 'basic' ? addYears(new Date(), 1) : addYears(new Date(), 2);
 
+      const specialDate = siteData.formData.specialDate instanceof Date && !isNaN(siteData.formData.specialDate.getTime())
+        ? siteData.formData.specialDate.toISOString()
+        : new Date().toISOString();
+      const relationshipStartDate = siteData.formData.relationshipStartDate instanceof Date && !isNaN(siteData.formData.relationshipStartDate.getTime())
+        ? siteData.formData.relationshipStartDate.toISOString()
+        : new Date().toISOString();
+
       const updatedSiteData = {
         custom_url: customUrl,
         user_id: user.id,
-        form_data: { ...siteData.formData, specialDate: siteData.formData.specialDate.toISOString(), relationshipStartDate: siteData.formData.relationshipStartDate.toISOString() },
+        form_data: {
+          ...siteData.formData,
+          specialDate,
+          relationshipStartDate,
+        },
         plan: selectedPlan,
         media: {
           photos: [...existingPhotos, ...photoUrls],
@@ -237,6 +272,7 @@ const EditSite = () => {
       navigate('/dashboard');
     } catch (error) {
       toast({ title: 'Erro', description: 'Erro ao atualizar o site.', variant: 'destructive' });
+      console.error('Error updating site:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -292,8 +328,7 @@ const EditSite = () => {
                   <FormLabel>Nome do Casal</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: João & Maria" {...field} />
-                  </FormControl>
-                  <FormMessage />
+                  </Preview>
                 </FormItem>
               )}
             />
