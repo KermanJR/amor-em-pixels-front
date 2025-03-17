@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { format, differenceInYears, differenceInMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Heart, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Play, Pause } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface SitePreviewProps {
@@ -23,7 +23,7 @@ interface SitePreviewProps {
 
 const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
   const [timeTogether, setTimeTogether] = useState({
     years: 0,
     months: 0,
@@ -81,8 +81,9 @@ const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps
     return trackId ? `https://open.spotify.com/embed/track/${trackId}` : '';
   };
 
-  const handleNextPhoto = () => setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
-  const handlePrevPhoto = () => setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+  const handleThumbnailClick = (index: number) => {
+    setMainPhotoIndex(index);
+  };
 
   return (
     <div className="min-h-screen w-full overflow-y-auto font-sans bg-gradient-to-br from-wine-50 to-gold-50">
@@ -167,45 +168,45 @@ const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps
             <p className="text-lg text-gray-700 italic">"{formData.message}"</p>
           </motion.div>
 
+          {/* Galeria de Fotos */}
           <motion.div
-            className="mb-12 max-w-3xl mx-auto relative"
+            className="mb-12 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
           >
-            <div className="relative group">
-              <motion.img
-                key={currentPhotoIndex}
-                src={photos[currentPhotoIndex]}
-                alt={`Foto ${currentPhotoIndex + 1}`}
-                className="w-full h-auto max-h-64 md:max-h-80 object-contain rounded-lg shadow-md border border-gold-200"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              />
-              {photos.length > 1 && (
-                <>
-                  <motion.button
-                    onClick={handlePrevPhoto}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-wine-700/80 p-2 rounded-full text-white hover:bg-wine-800 transition-all opacity-0 group-hover:opacity-100"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </motion.button>
-                  <motion.button
-                    onClick={handleNextPhoto}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-wine-700/80 p-2 rounded-full text-white hover:bg-wine-800 transition-all opacity-0 group-hover:opacity-100"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </motion.button>
-                </>
-              )}
-            </div>
+            <h2 className="text-xl md:text-2xl text-wine-800 font-medium mb-4">Nossas Memórias</h2>
+            {/* Foto Principal */}
+            <motion.img
+              key={mainPhotoIndex}
+              src={photos[mainPhotoIndex]}
+              alt={`Foto principal ${mainPhotoIndex + 1}`}
+              className="w-full h-auto max-h-80 object-cover rounded-lg shadow-md border border-gold-200 mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            />
+            {/* Miniaturas */}
+            {photos.length > 1 && (
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                {photos.map((photo, index) => (
+                  <motion.img
+                    key={index}
+                    src={photo}
+                    alt={`Miniatura ${index + 1}`}
+                    className={`w-full h-20 object-cover rounded-md border cursor-pointer ${
+                      index === mainPhotoIndex ? 'border-wine-700 border-2' : 'border-gold-200'
+                    }`}
+                    onClick={() => handleThumbnailClick(index)}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                ))}
+              </div>
+            )}
           </motion.div>
 
+          {/* Vídeo */}
           {videos.length > 0 && (
             <motion.div
               className="mb-12 max-w-2xl mx-auto"
