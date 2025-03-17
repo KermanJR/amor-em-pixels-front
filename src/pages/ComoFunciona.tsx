@@ -1,16 +1,14 @@
-
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Play } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Play, XCircle } from 'lucide-react';
 
 const ComoFunciona = () => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   
   useEffect(() => {
-    // Add a small delay for animation purposes
     const timer = setTimeout(() => {
       setIsPageLoaded(true);
     }, 100);
@@ -29,30 +27,8 @@ const ComoFunciona = () => {
               isPageLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
             }`}
           >
-            <div className="text-center mb-16">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                Como Funciona o Amor em Pixels
-              </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Crie um presente digital único em poucos minutos e emocione quem você ama.
-              </p>
-            </div>
-            
-            {/* Video preview section */}
-            <div className="bg-gray-100 rounded-xl overflow-hidden mb-16 relative aspect-video group hover:shadow-lg transition-all duration-300">
-              <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                <button className="bg-white rounded-full p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <Play className="h-8 w-8 text-love-500 fill-current" />
-                </button>
-              </div>
-              <img 
-                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b" 
-                alt="Como funciona o Amor em Pixels" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            {/* Steps section */}
+          
+     
             <div className="mb-20">
               <h2 className="text-2xl font-bold text-center mb-10">Em apenas 4 passos simples</h2>
               
@@ -70,13 +46,13 @@ const ComoFunciona = () => {
                   },
                   {
                     step: 3,
-                    title: "Escolha o template",
-                    description: "Selecione entre nossos templates exclusivos com animações e estilos diferentes."
+                    title: "Escolha o Plano",
+                    description: "Selecione entre os planos disponíveis até o momento."
                   },
                   {
                     step: 4,
                     title: "Compartilhe",
-                    description: "Receba um link único e compartilhe com seu amor para criar um momento inesquecível."
+                    description: "Receba um link QRDOCE único e compartilhe com seu amor para criar um momento inesquecível."
                   }
                 ].map((item) => (
                   <div key={item.step} className="text-center">
@@ -90,7 +66,7 @@ const ComoFunciona = () => {
               </div>
             </div>
             
-            {/* Features highlight */}
+          
             <div className="mb-16">
               <h2 className="text-2xl font-bold text-center mb-10">O que você pode incluir</h2>
               
@@ -114,15 +90,19 @@ const ComoFunciona = () => {
                   },
                   {
                     title: "Datas especiais",
-                    description: "Destaque datas importantes do relacionamento com contadores personalizados."
+                    description: "Destaque datas importantes do relacionamento com contadores personalizados. (Em breve!)"
                   },
                   {
                     title: "Designs exclusivos",
-                    description: "Escolha entre templates românticos ou modernos com animações especiais."
+                    description: "Escolha entre templates românticos ou modernos com animações especiais. (Em breve!)"
                   }
                 ].map((item, index) => (
                   <div key={index} className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 mr-3 flex-shrink-0" />
+                    {item.title === "Datas especiais" || item.title === "Designs exclusivos" ? (
+                      <XCircle className="h-5 w-5 text-gray-400 mt-1 mr-3 flex-shrink-0" />
+                    ) : (
+                      <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 mr-3 flex-shrink-0" />
+                    )}
                     <div>
                       <h3 className="font-semibold mb-1">{item.title}</h3>
                       <p className="text-gray-600 text-sm">{item.description}</p>
@@ -166,15 +146,16 @@ const ComoFunciona = () => {
                   },
                   {
                     question: "Por quanto tempo meu site ficará disponível?",
-                    answer: "Os sites ficam disponíveis por 1 ano a partir da data de criação. Após esse período, você pode renovar o acesso por uma pequena taxa."
+                    answer: `Os Cards Digitais ficam disponíveis de acordo com o plano escolhido a partir da data da compra. Para o plano básico, o site ficará disponível por 6 meses.
+                    Para o plano Premium, o Card Digital ficará disponível por 1 ano.`
                   },
                   {
                     question: "Posso editar o site depois de criado?",
-                    answer: "Sim! Você pode editar seu site a qualquer momento acessando sua conta e navegando até 'Meus Sites'."
+                    answer: "Sim! Você pode editar seu site a qualquer momento acessando sua conta e navegando até 'Dashboard'."
                   },
                   {
                     question: "Quais as vantagens do plano Premium?",
-                    answer: "O plano Premium oferece upload ilimitado de fotos e vídeos, animações exclusivas, remoção da marca d'água e suporte prioritário."
+                    answer: "O plano Premium oferece mais uplods fotos e vídeos, seu Card Digital PDF para download e  suporte prioritário."
                   }
                 ].map((item, index) => (
                   <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
