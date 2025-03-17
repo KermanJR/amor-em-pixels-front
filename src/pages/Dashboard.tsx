@@ -87,7 +87,7 @@ const Dashboard = () => {
     if (!stripe) return;
 
     try {
-      const response = await fetch('http://localhost:3000/create-checkout-session', {
+      const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, customUrl: site.custom_url, plan: site.plan, siteId: site.id }),
@@ -138,41 +138,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Informações do Plano */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500" />
-              Seu Plano Atual
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p>Carregando...</p>
-            ) : (
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <Badge className={`${planLimits.color} text-xs sm:text-sm font-medium`}>
-                    {planLimits.name}
-                  </Badge>
-                  <div>
-                    <p className="text-gray-600 text-sm sm:text-base">{planLimits.description}</p>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                      Total de sites: <span className="font-semibold">{sites.length}</span>
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => navigate('/precos')}
-                  variant="outline"
-                  className="border-love-500 text-love-500 hover:bg-love-50 text-sm sm:text-base py-2 px-3 sm:px-4"
-                >
-                  Ver Planos
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
 
         {/* Seção de Sites */}
         {loading ? (

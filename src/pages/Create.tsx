@@ -219,7 +219,7 @@ const Create = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:3000/create-checkout-session', {
+      const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId }),
