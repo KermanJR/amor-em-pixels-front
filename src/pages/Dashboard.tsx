@@ -87,7 +87,7 @@ const Dashboard = () => {
     if (!stripe) return;
 
     try {
-      const response = await fetch('http://localhost:3000/create-checkout-session', {
+      const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, customUrl: site.custom_url, plan: site.plan, siteId: site.id }),
