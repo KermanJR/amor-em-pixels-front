@@ -227,7 +227,7 @@ const Create = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId }),
       });
-      if (!response.ok) throw new Error('Falha ao criar sessão de checkout');
+      //if (!response.ok) throw new Error('Falha ao criar sessão de checkout');
       const { sessionId } = await response.json();
       const { error } = await stripe.redirectToCheckout({ sessionId });
       if (error) throw error;
