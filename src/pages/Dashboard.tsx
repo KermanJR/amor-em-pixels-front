@@ -12,7 +12,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download, QrCode, Copy } from 'lucide-react';
+import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import QRCode from 'qrcode';
@@ -38,11 +38,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isPDFDialogOpen, setIsPDFDialogOpen] = useState(false);
-  const [isQRCodeDialogOpen, setIsQRCodeDialogOpen] = useState(false);
   const [selectedSite, setSelectedSite] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>(BACKGROUND_COLORS[0].value);
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,22 +76,8 @@ const Dashboard = () => {
     fetchUserAndData();
   }, [navigate, toast]);
 
-  const openQRCodeDialog = async (site: any) => {
-    const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/${site.custom_url}`);
-    setQrCodeUrl(qrCodeUrl);
-    setSelectedSite(site);
-    setIsQRCodeDialogOpen(true);
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast({ title: 'Sucesso', description: 'Link copiado para a área de transferência!' });
-    }).catch(() => {
-      toast({ title: 'Erro', description: 'Falha ao copiar o link.', variant: 'destructive' });
-    });
-  };
-
   const openPDFDialog = (site: any) => {
+    console.log('Abrindo modal para site:', site);
     setSelectedSite(site);
     setSelectedPhoto(site.media.photos[0] || '');
     setSelectedColor(BACKGROUND_COLORS[0].value);
@@ -101,22 +85,27 @@ const Dashboard = () => {
   };
 
   const handleDownloadPDF = async () => {
+    console.log('Gerando PDF com:', { selectedPhoto, selectedColor });
     if (!selectedSite || selectedSite.status !== 'active') {
       toast({ title: 'Erro', description: 'O pagamento deve ser concluído para baixar o PDF.', variant: 'destructive' });
       return;
     }
 
     try {
+      // Carregar o PDF template
       const templateUrl = '/template.pdf'; // Ajuste o caminho para o seu PDF
       const existingPdfBytes = await fetch(templateUrl).then(res => res.arrayBuffer());
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
+      // Pegar a primeira página do PDF
       const pages = pdfDoc.getPages();
       const firstPage = pages[0];
       const { width, height } = firstPage.getSize();
 
+      // Incorporar fontes
       const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
+      // Incorporar a foto
       let imgBytes = await fetch(selectedPhoto || 'https://via.placeholder.com/300x200?text=Sem+Foto').then(res => res.arrayBuffer());
       let img;
       if (selectedPhoto.endsWith('.png')) {
@@ -124,7 +113,7 @@ const Dashboard = () => {
       } else {
         img = await pdfDoc.embedJpg(imgBytes);
       }
-      const imgWidth = 150;
+      const imgWidth = 150; // Ajuste conforme necessário
       const imgHeight = (img.height * imgWidth) / img.width;
       firstPage.drawImage(img, {
         x: (width - imgWidth) / 2,
@@ -133,6 +122,7 @@ const Dashboard = () => {
         height: imgHeight,
       });
 
+      // Gerar e incorporar o QR code
       const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/${selectedSite.custom_url}`);
       const qrCodeBytes = await fetch(qrCodeUrl).then(res => res.arrayBuffer());
       const qrCodeImage = await pdfDoc.embedPng(qrCodeBytes);
@@ -144,23 +134,26 @@ const Dashboard = () => {
         height: qrSize,
       });
 
+      // Adicionar o texto do QR code
       firstPage.drawText('Escaneie para visitar nosso Card Digital', {
         x: (width - helveticaFont.widthOfTextAtSize('Escaneie para visitar nosso Card Digital', 12)) / 2,
         y: 15,
         size: 12,
         font: helveticaFont,
-        color: rgb(107 / 255, 26 / 255, 40 / 255),
+        color: rgb(107 / 255, 26 / 255, 40 / 255), // #6B1A28
       });
 
+      // Adicionar o nome do casal
       const coupleName = selectedSite.form_data.coupleName;
       firstPage.drawText(coupleName, {
         x: (width - helveticaFont.widthOfTextAtSize(coupleName, 30)) / 2,
         y: height - 50,
         size: 30,
         font: helveticaFont,
-        color: rgb(135 / 255, 33 / 255, 51 / 255),
+        color: rgb(135 / 255, 33 / 255, 51 / 255), // #872133
       });
 
+      // Adicionar a mensagem
       const message = `"${selectedSite.form_data.message}"`;
       const messageLines = message.split('\n');
       let messageY = height - 80;
@@ -170,20 +163,22 @@ const Dashboard = () => {
           y: messageY,
           size: 16,
           font: helveticaFont,
-          color: rgb(107 / 255, 26 / 255, 40 / 255),
+          color: rgb(107 / 255, 26 / 255, 40 / 255), // #6B1A28
         });
         messageY -= 20;
       }
 
+      // Adicionar a data de início
       const startDate = format(new Date(selectedSite.form_data.relationshipStartDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
       firstPage.drawText(`Início: ${startDate}`, {
         x: (width - helveticaFont.widthOfTextAtSize(`Início: ${startDate}`, 14)) / 2,
         y: height - 250 - imgHeight - 10,
         size: 14,
         font: helveticaFont,
-        color: rgb(184 / 255, 134 / 255, 11 / 255),
+        color: rgb(184 / 255, 134 / 255, 11 / 255), // #B8860B
       });
 
+      // Salvar o PDF
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
@@ -267,11 +262,11 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <Separator className="my-3 sm:my-4" />
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         onClick={() => navigate(`/editar-site/${site.id}`)}
-                        className="flex-1 text-xs sm:text-sm py-1 sm:py-2"
+                        className="flex-1 text-xs sm:text-sm py-2"
                       >
                         <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Editar
@@ -279,42 +274,22 @@ const Dashboard = () => {
                       <Button
                         variant="outline"
                         onClick={() => window.open(`/${site.custom_url}`, '_blank')}
-                        className="flex-1 text-xs sm:text-sm py-1 sm:py-2"
+                        className="flex-1 text-xs sm:text-sm py-2"
                       >
                         <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Visitar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => openQRCodeDialog(site)}
-                        className="flex-1 text-xs sm:text-sm py-1 sm:py-2"
-                      >
-                        <QrCode className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Ver QR Code
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => copyToClipboard(`${window.location.origin}/${site.custom_url}`)}
-                        className="flex-1 text-xs sm:text-sm py-1 sm:py-2"
-                      >
-                        <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Copiar Link
                       </Button>
                       {site.plan === 'premium' && site.status === 'active' && (
                         <Button
                           variant="outline"
                           onClick={() => openPDFDialog(site)}
-                          className="flex-1 text-xs sm:text-sm py-1 sm:py-2"
+                          className="flex-1 text-xs sm:text-sm py-2"
                         >
                           <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                           Baixar PDF
                         </Button>
                       )}
                     </div>
-                    <p className="mt-2 text-xs sm:text-sm text-gray-600 italic flex items-center gap-1">
-                      <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-love-500" />
-                      Compartilhe esse link com a pessoa que você ama e não esqueça de passar a senha: <strong>{site.form_data.password}</strong>
-                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -322,33 +297,6 @@ const Dashboard = () => {
           </>
         )}
       </div>
-
-      {/* Modal para QR Code */}
-      <Dialog open={isQRCodeDialogOpen} onOpenChange={setIsQRCodeDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>QR Code do Seu Card</DialogTitle>
-            <DialogDescription>
-              Escaneie este QR Code ou compartilhe o link com a pessoa que você ama. Não esqueça de passar a senha: <strong>{selectedSite?.form_data.password}</strong>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center my-4">
-            {qrCodeUrl && <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />}
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setIsQRCodeDialogOpen(false)} className="w-full sm:w-auto">
-              Fechar
-            </Button>
-            <Button
-              onClick={() => copyToClipboard(`${window.location.origin}/${selectedSite?.custom_url}`)}
-              className="w-full sm:w-auto"
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              Copiar Link
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Modal para Escolha de Foto e Cor */}
       <Dialog open={isPDFDialogOpen} onOpenChange={setIsPDFDialogOpen}>
@@ -358,6 +306,7 @@ const Dashboard = () => {
             <DialogDescription>Escolha uma foto e a cor de fundo.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
+            {/* Escolha da Foto */}
             <div>
               <h3 className="text-sm font-semibold mb-2">Escolha uma Foto</h3>
               {selectedSite && selectedSite.media.photos.length > 0 ? (
@@ -370,7 +319,10 @@ const Dashboard = () => {
                       className={`w-full h-24 object-cover rounded-md cursor-pointer border-2 ${
                         selectedPhoto === photo ? 'border-red-500' : 'border-gray-200'
                       }`}
-                      onClick={() => setSelectedPhoto(photo)}
+                      onClick={() => {
+                        console.log('Foto selecionada:', photo);
+                        setSelectedPhoto(photo);
+                      }}
                     />
                   ))}
                 </div>
@@ -379,6 +331,7 @@ const Dashboard = () => {
               )}
             </div>
 
+            {/* Escolha da Cor */}
             <div>
               <h3 className="text-sm font-semibold mb-2">Escolha a Cor de Fundo</h3>
               <div className="grid grid-cols-4 gap-2">
@@ -389,7 +342,10 @@ const Dashboard = () => {
                       selectedColor === color.value ? 'border-red-500' : 'border-gray-200'
                     }`}
                     style={{ backgroundColor: color.value }}
-                    onClick={() => setSelectedColor(color.value)}
+                    onClick={() => {
+                      console.log('Cor selecionada:', color.value);
+                      setSelectedColor(color.value);
+                    }}
                   />
                 ))}
               </div>
