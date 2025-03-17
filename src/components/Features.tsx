@@ -95,7 +95,7 @@ const plans: Plan[] = [
 
   {
     name: 'Básico',
-    price: 'R$ 25,90',
+    price: 'R$ 29,90',
     description: 'Mais amor e recursos por 6 meses!',
     features: [
       { feature: '5 fotos por Card Digital', included: true },
@@ -317,15 +317,15 @@ const Features = () => {
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-        >
-          {plans.map((plan, index) => (
-            <PlanCard key={index} plan={plan} />
-          ))}
-        </motion.div>
+  className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto justify-items-center"
+  initial={{ opacity: 0 }}
+  animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+  transition={{ duration: 0.8, delay: 0.8 }}
+>
+  {plans.map((plan, index) => (
+    <PlanCard key={index} plan={plan} />
+  ))}
+</motion.div>
       </div>
     </section>
   );
