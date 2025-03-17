@@ -232,7 +232,7 @@ const Create = () => {
       const { error } = await stripe.redirectToCheckout({ sessionId });
       if (error) throw error;
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha ao iniciar o checkout.', variant: 'destructive' });
+      //toast({ title: 'Erro', description: 'Falha ao iniciar o checkout.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
