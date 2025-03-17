@@ -213,9 +213,11 @@ const Dashboard = () => {
               {activeSites.map(site => (
                 <Card key={site.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="relative p-0">
-                    <div className="h-32 sm:h-40 bg-gradient-to-r from-love-300 to-love-500 rounded-t-lg flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
-                      {site.form_data.coupleName.charAt(0)}
-                    </div>
+                    <img
+                      src={site.media.photos[0] || 'https://via.placeholder.com/300x120?text=Sem+Foto'}
+                      alt={`Foto de ${site.form_data.coupleName}`}
+                      className="h-32 sm:h-40 w-full object-cover rounded-t-lg"
+                    />
                     <Badge className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-green-500 text-white text-xs sm:text-sm">
                       Ativo
                     </Badge>
@@ -308,9 +310,11 @@ const Dashboard = () => {
                   {pendingSites.map(site => (
                     <Card key={site.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader className="relative p-0">
-                        <div className="h-32 sm:h-40 bg-gradient-to-r from-yellow-300 to-yellow-500 rounded-t-lg flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
-                          {site.form_data.coupleName.charAt(0)}
-                        </div>
+                        <img
+                          src={site.media.photos[0] || 'https://via.placeholder.com/300x120?text=Sem+Foto'}
+                          alt={`Foto de ${site.form_data.coupleName}`}
+                          className="h-32 sm:h-40 w-full object-cover rounded-t-lg"
+                        />
                         <Badge className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-yellow-500 text-white text-xs sm:text-sm">
                           Pendente
                         </Badge>
@@ -375,9 +379,11 @@ const Dashboard = () => {
                   {canceledSites.map(site => (
                     <Card key={site.id} className="hover:shadow-lg transition-shadow opacity-75">
                       <CardHeader className="relative p-0">
-                        <div className="h-32 sm:h-40 bg-gradient-to-r from-red-300 to-red-500 rounded-t-lg flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
-                          {site.form_data.coupleName.charAt(0)}
-                        </div>
+                        <img
+                          src={site.media.photos[0] || 'https://via.placeholder.com/300x120?text=Sem+Foto'}
+                          alt={`Foto de ${site.form_data.coupleName}`}
+                          className="h-32 sm:h-40 w-full object-cover rounded-t-lg"
+                        />
                         <Badge className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-red-500 text-white text-xs sm:text-sm">
                           Cancelado
                         </Badge>
