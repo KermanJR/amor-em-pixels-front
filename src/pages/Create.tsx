@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Sparkles } from 'lucide-react';
+import { Calendar, Sparkles, Heart, Camera, Video, Music, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -61,7 +61,6 @@ const Create = () => {
   const [siteData, setSiteData] = useState<any>(null);
   const [customUrl, setCustomUrl] = useState<string>('');
   const [siteId, setSiteId] = useState<string | null>(null);
-  const [emailVerified, setEmailVerified] = useState(false); // Novo estado para verificar e-mail
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -73,18 +72,11 @@ const Create = () => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-      if (user) {
-        const { data: profile } = await supabase.auth.getUser();
-        setEmailVerified(!!profile.user?.email_confirmed_at); // Verifica se o e-mail foi confirmado
-      }
     };
     checkUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        setEmailVerified(!!session.user.email_confirmed_at);
-      }
     });
 
     return () => authListener.subscription.unsubscribe();
@@ -110,38 +102,11 @@ const Create = () => {
     setAuthLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        if (error.message.includes('Email not confirmed')) {
-          toast({
-            title: 'E-mail Não Verificado',
-            description: 'Por favor, verifique seu e-mail. Verifique sua caixa de entrada ou solicite o reenvio do link.',
-            variant: 'destructive',
-            action: (
-              <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
-                Reenviar Link
-              </Button>
-            ),
-          });
-        } else {
-          throw error;
-        }
-      } else if (!emailVerified) {
-        toast({
-          title: 'Aviso',
-          description: 'E-mail ainda não verificado. Verifique sua caixa de entrada ou solicite o reenvio do link.',
-          variant: 'warning',
-          action: (
-            <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
-              Reenviar Link
-            </Button>
-          ),
-        });
-      } else {
-        setIsAuthDialogOpen(false);
-        toast({ title: 'Sucesso', description: 'Login realizado com sucesso!' });
-      }
+      if (error) throw error;
+      setIsAuthDialogOpen(false);
+      toast({ title: 'Sucesso', description: 'Login realizado com sucesso!' });
     } catch (error) {
-      toast({ title: 'Erro', description: `Falha no login: ${error.message}`, variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Falha no login.', variant: 'destructive' });
     } finally {
       setAuthLoading(false);
     }
@@ -152,38 +117,12 @@ const Create = () => {
     try {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
-      toast({
-        title: 'Sucesso',
-        description: 'Cadastro realizado! Enviamos um link de confirmação para seu e-mail. Verifique sua caixa de entrada (incluindo spam) e clique no link para ativar sua conta.',
-        variant: 'default',
-        action: (
-          <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
-            Reenviar Link
-          </Button>
-        ),
-      });
-      setIsLogin(true); // Volta para a aba de login após o cadastro
+      toast({ title: 'Sucesso', description: 'Cadastro realizado! Verifique seu e-mail.' });
+      setIsLogin(true);
     } catch (error) {
-      toast({ title: 'Erro', description: `Falha no cadastro: ${error.message}`, variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Falha no cadastro.', variant: 'destructive' });
     } finally {
       setAuthLoading(false);
-    }
-  };
-
-  const resendConfirmationEmail = async () => {
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-      });
-      if (error) throw error;
-      toast({
-        title: 'Sucesso',
-        description: 'Um novo link de confirmação foi enviado para seu e-mail. Verifique sua caixa de entrada (incluindo spam).',
-        variant: 'default',
-      });
-    } catch (error) {
-      toast({ title: 'Erro', description: `Falha ao reenviar o link: ${error.message}`, variant: 'destructive' });
     }
   };
 
@@ -198,25 +137,7 @@ const Create = () => {
   const onPreview = async (values: FormValues) => {
     if (!user) {
       setIsAuthDialogOpen(true);
-      toast({
-        title: 'Aviso',
-        description: 'Você precisa estar logado para criar o site. Faça login ou cadastre-se.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!emailVerified) {
-      toast({
-        title: 'Aviso',
-        description: 'Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada ou solicite o reenvio do link.',
-        variant: 'warning',
-        action: (
-          <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
-            Reenviar Link
-          </Button>
-        ),
-      });
+      toast({ title: 'Aviso', description: 'Você precisa estar logado para criar o site. Faça login ou cadastre-se.', variant: 'destructive' });
       return;
     }
 
@@ -288,21 +209,17 @@ const Create = () => {
       const { data, error } = await supabase.from('sites').insert([finalSiteData]).select('id').single();
       if (error) {
         if (error.code === '23505') {
-          toast({ title: 'Erro', description: 'Esta URL já está em uso. Escolha outra.', variant: 'destructive' });
+          toast({ title: 'Erro', description: 'Esta URL já está em uso.', variant: 'destructive' });
           return null;
         }
         throw error;
       }
 
-      toast({
-        title: 'Sucesso',
-        description: status === 'active' ? 'Seu site foi criado com sucesso!' : 'Site criado como pendente. Aguarde a confirmação do pagamento.',
-        variant: 'default',
-      });
+      toast({ title: 'Sucesso', description: status === 'active' ? 'Seu site foi criado com sucesso!' : 'Site criado como pendente. Complete o pagamento!' });
       setSiteId(data.id);
       return data.id;
     } catch (error) {
-      toast({ title: 'Erro', description: `Erro ao criar o site: ${error.message}`, variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Erro ao criar o site.', variant: 'destructive' });
       return null;
     } finally {
       setIsSubmitting(false);
@@ -323,24 +240,12 @@ const Create = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId }),
       });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Falha ao criar sessão de checkout: ${errorText}`);
-      }
+      if (!response.ok) throw new Error('Falha ao criar sessão de checkout');
       const { sessionId } = await response.json();
       const { error } = await stripe.redirectToCheckout({ sessionId });
       if (error) throw error;
     } catch (error) {
-      toast({
-        title: 'Erro no Checkout',
-        description: `Falha ao iniciar o checkout: ${error.message}. Verifique sua conexão ou tente novamente mais tarde.`,
-        variant: 'destructive',
-        action: (
-          <Button variant="outline" size="sm" onClick={handleCheckout}>
-            Tentar Novamente
-          </Button>
-        ),
-      });
+      toast({ title: 'Erro', description: 'Falha ao iniciar o checkout.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
@@ -495,25 +400,8 @@ const Create = () => {
               <DialogDescription>{isLogin ? 'Entre para criar seu Card Digital.' : 'Crie uma conta para começar.'}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={authLoading}
-              />
-              <Input
-                type="password"
-                placeholder="Senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={authLoading}
-              />
-              {!emailVerified && !isLogin && (
-                <p className="text-sm text-yellow-600">
-                  Após o cadastro, verifique seu e-mail. Um link de confirmação foi enviado!
-                </p>
-              )}
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <DialogFooter className="flex flex-col gap-2">
               <Button onClick={isLogin ? handleLogin : handleSignUp} disabled={authLoading}>
@@ -550,17 +438,61 @@ const Create = () => {
                   Faça upgrade para o Premium e baixe seu PDF exclusivo com QR Code no Dashboard após o pagamento!
                 </p>
 
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">Defina a URL (sem hífen - ):</h3>
-                  <Input
-                    value={customUrl}
-                    onChange={(e) => setCustomUrl(e.target.value.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim())}
-                    placeholder="Ex: joaoemaria"
-                  />
-                  <p className="text-sm text-gray-600">{`${window.location.origin}/${customUrl || '[sua-url]'}`}</p>
-                  <p className="text-sm text-gray-600">
-                    Senha para acesso: {siteData.formData.password} (Compartilhe esta senha com seu amor!)
-                  </p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Defina a URL (sem hífen - ):</h3>
+                    <Input
+                      value={customUrl}
+                      onChange={(e) => setCustomUrl(e.target.value.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim())}
+                      placeholder="Ex: joaoemaria"
+                    />
+                    <p className="text-sm text-gray-600">{`${window.location.origin}/${customUrl || '[sua-url]'}`}</p>
+                    <p className="text-sm text-gray-600">
+                      Senha para acesso: {siteData.formData.password} (Compartilhe esta senha com seu amor!)
+                    </p>
+                  </div>
+
+                  {/* Resumo do Card Criado */}
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium text-gray-800">Resumo do Seu Card:</h3>
+                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                      <li className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-love-500" />
+                        <span><strong>Nome do Casal:</strong> {siteData.formData.coupleName}</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-love-500" />
+                        <span><strong>Data de Início:</strong> {format(new Date(siteData.formData.relationshipStartDate), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-love-500" />
+                        <span><strong>Mensagem:</strong> {siteData.formData.message.length > 50 ? siteData.formData.message.substring(0, 50) + '...' : siteData.formData.message}</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Camera className="h-4 w-4 text-love-500" />
+                        <span><strong>Fotos:</strong> {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Video className="h-4 w-4 text-love-500" />
+                        <span><strong>Vídeos:</strong> {videos.length} {videos.length === 1 ? 'vídeo' : 'vídeos'}</span>
+                      </li>
+                      {siteData.formData.spotifyLink ? (
+                        <li className="flex items-center gap-2">
+                          <Music className="h-4 w-4 text-love-500" />
+                          <span><strong>Música do Spotify:</strong> Adicionada</span>
+                        </li>
+                      ) : (
+                        <li className="flex items-center gap-2">
+                          <Music className="h-4 w-4 text-love-500" />
+                          <span><strong>Música do Spotify:</strong> Não adicionada</span>
+                        </li>
+                      )}
+                      <li className="flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-love-500" />
+                        <span><strong>Senha:</strong> {siteData.formData.password}</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               <DialogFooter className="flex gap-2">
