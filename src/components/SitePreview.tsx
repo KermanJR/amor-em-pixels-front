@@ -220,33 +220,7 @@ const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps
             </motion.div>
           )}
 
-          {/* Resumo do Plano */}
-          <motion.div
-            className="mb-12 p-6 bg-white rounded-lg shadow-lg border border-gold-100 max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-          >
-            <h2 className="text-xl md:text-2xl text-wine-800 font-medium mb-4">Resumo do Seu Plano</h2>
-            <ul className="list-disc list-inside text-gray-700 space-y-2">
-              {plan === 'basic' ? (
-                <>
-                  <li>Acesso ao seu site personalizado por <span className="font-semibold text-wine-800">6 meses</span>.</li>
-                  <li>Inclui até <span className="font-semibold text-wine-800">5 fotos</span>, <span className="font-semibold text-wine-800">1 vídeo</span> e <span className="font-semibold text-wine-800">1 música</span>.</li>
-                  <li>Preço: <span className="font-semibold text-wine-800">R$29,90</span>.</li>
-                </>
-              ) : plan === 'premium' ? (
-                <>
-                  <li>Acesso ao seu site personalizado por <span className="font-semibold text-wine-800">12 meses</span>.</li>
-                  <li>Inclui até <span className="font-semibold text-wine-800">8 fotos</span>, <span className="font-semibold text-wine-800">1 vídeo</span> e <span className="font-semibold text-wine-800">1 música</span>.</li>
-                  <li>Preço: <span className="font-semibold text-wine-800">R$49,90</span>.</li>
-                  <li>Baixe um <span className="font-semibold text-wine-800">card digital exclusivo com QR Code</span> para compartilhar com seu amor!</li>
-                </>
-              ) : (
-                <li>Você está na versão gratuita, que inclui uma prévia limitada do site.</li>
-              )}
-            </ul>
-          </motion.div>
+        
         </motion.div>
       </div>
 
