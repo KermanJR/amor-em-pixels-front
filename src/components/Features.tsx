@@ -98,9 +98,9 @@ const plans: Plan[] = [
     price: 'R$ 25,90',
     description: 'Mais amor e recursos por 6 meses!',
     features: [
-      { feature: '5 fotos por site', included: true },
-      { feature: '1 vídeos por site', included: true },
-      { feature: '1 música por site', included: true },
+      { feature: '5 fotos por Card Digital', included: true },
+      { feature: '1 vídeos por Card Digital', included: true },
+      { feature: '1 música por Card Digital', included: true },
       { feature: 'Link QRCODE compartilhável', included: true },
       { feature: 'Validade de 6 meses', included: true },
       { feature: 'Suporte prioritário', included: true },
@@ -117,9 +117,9 @@ const plans: Plan[] = [
     price: 'R$ 49,90',
     description: 'O plano dos SONHOS para 12 meses de amor!',
     features: [
-      { feature: '8 fotos por site', included: true },
-      { feature: '1 vídeos por site', included: true },
-      { feature: '1 músicas por site', included: true },
+      { feature: '8 fotos por Card Digital', included: true },
+      { feature: '1 vídeos por Card Digital', included: true },
+      { feature: '1 músicas por Card Digital', included: true },
       { feature: 'Link QRCODE compartilhável', included: true },
       { feature: 'Campos extras (memórias, sonhos)', included: true },
       { feature: 'Suporte 24/7', included: true },
@@ -259,7 +259,7 @@ const Features = () => {
             Desperte Emoções com Nossos Recursos!
           </h2>
           <p className="text-lg md:text-xl text-gray-700 mb-6 font-medium">
-            Crie um card digital único com fotos, vídeos e músicas que vão tocar o coração de quem você ama!{' '}
+            Crie um Card Digital único com fotos, vídeos e músicas que vão tocar o coração de quem você ama!{' '}
             <span className="text-pink-600 font-bold">Comece agora!</span>
           </p>
           <motion.div
@@ -271,7 +271,7 @@ const Features = () => {
             <Flower className="absolute top-2 left-2 h-6 w-6 text-pink-200/40 animate-spin-slow" />
             <Flower className="absolute bottom-2 right-2 h-6 w-6 text-pink-200/40 animate-spin-slow" />
             <p className="text-gray-700 italic text-sm sm:text-base">
-              "Meu site surpreendeu minha esposa! Ela chorou de alegria – o melhor presente ever!" – João, 32 anos
+              "Meu Card Digital surpreendeu minha esposa! Ela chorou de alegria – o melhor presente ever!" – João, 32 anos
             </p>
             <div className="mt-2 flex items-center justify-center gap-2 text-pink-600">
               <Star className="h-4 w-4 fill-pink-600 animate-twinkle" />
