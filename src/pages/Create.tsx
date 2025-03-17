@@ -297,10 +297,10 @@ const Create = () => {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="basic">
-                <p className="text-sm text-gray-600 mb-4">5 fotos, 1 vídeo, 1 música por R$59,90, válido por 6 meses.</p>
+                <p className="text-sm text-gray-600 mb-4">5 fotos, 1 vídeo, 1 música por R$29,90, válido por 6 meses.</p>
               </TabsContent>
               <TabsContent value="premium">
-                <p className="text-sm text-gray-600 mb-4">8 fotos, 1 vídeo, 1 música por R$99,90, válido por 12 meses.</p>
+                <p className="text-sm text-gray-600 mb-4">8 fotos, 1 vídeo, 1 música por R$49,90, válido por 12 meses.</p>
               </TabsContent>
             </Tabs>
 
