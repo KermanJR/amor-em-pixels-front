@@ -165,6 +165,7 @@ const EditSite = () => {
   };
 
   const onPreview = async (values: FormValues) => {
+    console.log('Form Values:', values); // Depuração
     if (!user) {
       setIsAuthDialogOpen(true);
       return;
@@ -194,6 +195,7 @@ const EditSite = () => {
       },
     };
 
+    console.log('Preview Data:', previewData); // Depuração
     setSiteData(previewData);
     setIsPreviewModalOpen(true);
   };
@@ -201,6 +203,11 @@ const EditSite = () => {
   const updateSite = async () => {
     setIsSubmitting(true);
     try {
+      if (!customUrl) {
+        toast({ title: 'Erro', description: 'Por favor, defina uma URL personalizada.', variant: 'destructive' });
+        return;
+      }
+
       const photoUrls = await Promise.all(
         photos.map(async (file, index) => {
           const { data, error } = await supabase.storage
@@ -255,6 +262,7 @@ const EditSite = () => {
         expiration_date: expirationDate.toISOString(),
       };
 
+      console.log('Updating site with data:', updatedSiteData); // Depuração
       const { error } = await supabase
         .from('sites')
         .update(updatedSiteData)
@@ -271,8 +279,8 @@ const EditSite = () => {
       toast({ title: 'Sucesso', description: 'Site atualizado com sucesso!' });
       navigate('/dashboard');
     } catch (error) {
+      console.error('Error updating site:', error); // Depuração
       toast({ title: 'Erro', description: 'Erro ao atualizar o site.', variant: 'destructive' });
-      console.error('Error updating site:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -328,14 +336,11 @@ const EditSite = () => {
                   <FormLabel>Nome do Casal</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: João & Maria" {...field} />
-                    </FormControl>
-                  <FormMessage/>
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-
-            
-          
 
             <FormField
               control={form.control}
