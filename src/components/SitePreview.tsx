@@ -206,42 +206,47 @@ const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps
             )}
           </motion.div>
 
-          {/* Resumo do Plano */}
-          <motion.div
-            className="mb-12 p-6 bg-white rounded-lg shadow-lg border border-gold-100 max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.0 }}
-          >
-            <h2 className="text-xl md:text-2xl text-wine-800 font-medium mb-4">Resumo do Seu Plano</h2>
-            {plan === 'basic' ? (
-              <p className="text-lg text-gray-700">
-                Com o <span className="font-semibold text-wine-800">Plano Básico</span>, você terá acesso ao seu site personalizado por <span className="font-semibold">6 meses</span>, incluindo até <span className="font-semibold">5 fotos</span>, <span className="font-semibold">1 vídeo</span> e <span className="font-semibold">1 música</span>.
-              </p>
-            ) : plan === 'premium' ? (
-              <p className="text-lg text-gray-700">
-                Com o <span className="font-semibold text-wine-800">Plano Premium</span>, você terá acesso ao seu site personalizado por <span className="font-semibold">12 meses</span>, incluindo até <span className="font-semibold">8 fotos</span>, <span className="font-semibold">1 vídeo</span> e <span className="font-semibold">1 música</span>. Além disso, você poderá <span className="font-semibold">baixar um card digital exclusivo com QR Code</span> para compartilhar com seu amor!
-              </p>
-            ) : (
-              <p className="text-lg text-gray-700">
-                Você está na versão gratuita, que inclui uma prévia limitada do site. Escolha um plano para personalizar e compartilhar seu site!
-              </p>
-            )}
-          </motion.div>
-
           {/* Vídeo */}
           {videos.length > 0 && (
             <motion.div
               className="mb-12 max-w-2xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.2 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
             >
               <video ref={videoRef} controls className="w-full rounded-lg shadow-md border border-gold-200">
                 <source src={videos[0]} type="video/mp4" />
               </video>
             </motion.div>
           )}
+
+          {/* Resumo do Plano */}
+          <motion.div
+            className="mb-12 p-6 bg-white rounded-lg shadow-lg border border-gold-100 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+          >
+            <h2 className="text-xl md:text-2xl text-wine-800 font-medium mb-4">Resumo do Seu Plano</h2>
+            <ul className="list-disc list-inside text-gray-700 space-y-2">
+              {plan === 'basic' ? (
+                <>
+                  <li>Acesso ao seu site personalizado por <span className="font-semibold text-wine-800">6 meses</span>.</li>
+                  <li>Inclui até <span className="font-semibold text-wine-800">5 fotos</span>, <span className="font-semibold text-wine-800">1 vídeo</span> e <span className="font-semibold text-wine-800">1 música</span>.</li>
+                  <li>Preço: <span className="font-semibold text-wine-800">R$29,90</span>.</li>
+                </>
+              ) : plan === 'premium' ? (
+                <>
+                  <li>Acesso ao seu site personalizado por <span className="font-semibold text-wine-800">12 meses</span>.</li>
+                  <li>Inclui até <span className="font-semibold text-wine-800">8 fotos</span>, <span className="font-semibold text-wine-800">1 vídeo</span> e <span className="font-semibold text-wine-800">1 música</span>.</li>
+                  <li>Preço: <span className="font-semibold text-wine-800">R$49,90</span>.</li>
+                  <li>Baixe um <span className="font-semibold text-wine-800">card digital exclusivo com QR Code</span> para compartilhar com seu amor!</li>
+                </>
+              ) : (
+                <li>Você está na versão gratuita, que inclui uma prévia limitada do site.</li>
+              )}
+            </ul>
+          </motion.div>
         </motion.div>
       </div>
 
