@@ -328,7 +328,8 @@ const EditSite = () => {
                   <FormLabel>Nome do Casal</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: João & Maria" {...field} />
-                  </Preview>
+                    </FormControl>
+                  <FormMessage/>
                 </FormItem>
               )}
             />
