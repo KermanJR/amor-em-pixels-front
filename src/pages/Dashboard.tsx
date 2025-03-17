@@ -56,7 +56,7 @@ const Dashboard = () => {
         .eq('user_id', user.id);
 
       if (error) {
-        toast({ title: 'Erro', description: 'Falha ao carregar seus sites.', variant: 'destructive' });
+        toast({ title: 'Erro', description: 'Falha ao carregar seus Cards Digitais', variant: 'destructive' });
       } else {
         setSites(data || []);
       }
@@ -76,9 +76,9 @@ const Dashboard = () => {
       if (error) throw error;
 
       setSites(sites.filter(site => site.id !== siteId));
-      toast({ title: 'Sucesso', description: 'Site excluído com sucesso!' });
+      toast({ title: 'Sucesso', description: 'Card Digital excluído com sucesso!' });
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha ao excluir o site.', variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Falha ao excluir o Card Digital', variant: 'destructive' });
     }
   };
 
@@ -114,7 +114,7 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">Bem-vindo ao seu Dashboard</h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">Gerencie seus sites de amor e crie novas histórias.</p>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Gerencie seus Cards Digitais de amor e crie novas histórias.</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
@@ -122,7 +122,7 @@ const Dashboard = () => {
               className="bg-love-500 hover:bg-love-600 text-white text-sm sm:text-base py-2 px-3 sm:px-4"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Novo Site
+              Novo Card Digital
             </Button>
             <Button
               variant="outline"
@@ -147,7 +147,7 @@ const Dashboard = () => {
           <Card className="text-center py-10">
             <CardContent>
               <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg text-gray-600">Você ainda não criou nenhum site.</p>
+              <p className="text-lg text-gray-600">Você ainda não criou nenhum Card Digital</p>
               <p className="text-sm text-gray-500">Comece agora e eternize suas memórias!</p>
               <Button
                 onClick={() => navigate('/criar')}
@@ -160,9 +160,9 @@ const Dashboard = () => {
         ) : (
           <>
             {/* Sites Ativos */}
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Sites Ativos</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Cards Digitais Ativos</h2>
             {activeSites.length === 0 && (
-              <p className="text-gray-600 text-sm sm:text-base">Nenhum site ativo no momento.</p>
+              <p className="text-gray-600 text-sm sm:text-base">Nenhum Card Digital ativo no momento.</p>
             )}
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {activeSites.map(site => (
@@ -230,7 +230,7 @@ const Dashboard = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Tem certeza de que deseja excluir o site "{site.form_data.coupleName}"? Esta ação não pode ser desfeita.
+                              Tem certeza de que deseja excluir o Card Digital "{site.form_data.coupleName}"? Esta ação não pode ser desfeita.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -248,7 +248,7 @@ const Dashboard = () => {
             {/* Sites Pendentes */}
             {pendingSites.length > 0 && (
               <>
-                <h2 className="text-xl sm:text-2xl font-semibold mb-4 mt-6 sm:mt-8 text-gray-800">Sites Pendentes</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-4 mt-6 sm:mt-8 text-gray-800">Cards Digitais Pendentes</h2>
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {pendingSites.map(site => (
                     <Card key={site.id} className="hover:shadow-lg transition-shadow">
@@ -295,7 +295,7 @@ const Dashboard = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Tem certeza de que deseja excluir o site pendente "{site.form_data.coupleName}"?
+                                  Tem certeza de que deseja excluir o Card Digital "{site.form_data.coupleName}"?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -315,7 +315,7 @@ const Dashboard = () => {
             {/* Sites Cancelados */}
             {canceledSites.length > 0 && (
               <>
-                <h2 className="text-xl sm:text-2xl font-semibold mb-4 mt-6 sm:mt-8 text-gray-800">Sites Cancelados</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-4 mt-6 sm:mt-8 text-gray-800">Cards Digitais Cancelados</h2>
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {canceledSites.map(site => (
                     <Card key={site.id} className="hover:shadow-lg transition-shadow opacity-75">
@@ -355,7 +355,7 @@ const Dashboard = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Tem certeza de que deseja excluir o site cancelado "{site.form_data.coupleName}"?
+                                  Tem certeza de que deseja excluir o Card Digital cancelado "{site.form_data.coupleName}"?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
