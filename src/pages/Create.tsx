@@ -215,10 +215,24 @@ const Create = () => {
 
   const handleCheckout = async () => {
   const stripe = await stripePromise;
-  if (!stripe || !siteData) return;
+  if (!stripe || !siteData) {
+    toast({
+      title: 'Erro',
+      description: 'Stripe ou dados do site não estão disponíveis.',
+      variant: 'destructive',
+    });
+    return;
+  }
 
   const siteId = await createSite('pending');
-  if (!siteId) return;
+  if (!siteId) {
+    toast({
+      title: 'Erro',
+      description: 'Falha ao criar o site. Tente novamente.',
+      variant: 'destructive',
+    });
+    return;
+  }
 
   setIsSubmitting(true);
   try {
@@ -231,14 +245,14 @@ const Create = () => {
       throw new Error(`Erro na requisição: ${response.status} - ${response.statusText}`);
     }
     const { sessionId } = await response.json();
-    console.log('Session ID recebido:', sessionId); // Depuração
+    console.log('Session ID recebido:', sessionId);
     const { error } = await stripe.redirectToCheckout({ sessionId });
     if (error) {
-      console.error('Erro no redirectToCheckout:', error.message); // Log detalhado
-      throw error; // Propaga o erro
+      console.error('Erro no redirectToCheckout:', error.message);
+      throw error;
     }
   } catch (error) {
-    console.error('Erro geral no checkout:', error); // Log do erro completo
+    console.error('Erro geral no checkout:', error);
     toast({
       title: 'Erro',
       description: `Falha ao iniciar o checkout. Detalhes: ${error.message || 'Erro desconhecido'}`,
