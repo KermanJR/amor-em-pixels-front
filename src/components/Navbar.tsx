@@ -122,24 +122,7 @@ const Navbar = () => {
           >
             Como Funciona
           </Link>
-          <Link
-            to="/exemplos"
-            className={cn(
-              'text-sm font-medium hover:text-love-500 transition-colors duration-200',
-              location.pathname === '/exemplos' ? 'text-love-500' : 'text-foreground/90'
-            )}
-          >
-            Exemplos
-          </Link>
-          <Link
-            to="/precos"
-            className={cn(
-              'text-sm font-medium hover:text-love-500 transition-colors duration-200',
-              location.pathname === '/precos' ? 'text-love-500' : 'text-foreground/90'
-            )}
-          >
-            Preços
-          </Link>
+         
 
           {user ? (
             <div className="flex items-center space-x-4">
@@ -204,20 +187,7 @@ const Navbar = () => {
             >
               Como Funciona
             </Link>
-            <Link
-              to="/exemplos"
-              className={cn('text-lg font-medium py-2 border-b border-gray-100', location.pathname === '/exemplos' ? 'text-love-500' : 'text-foreground')}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Exemplos
-            </Link>
-            <Link
-              to="/precos"
-              className={cn('text-lg font-medium py-2 border-b border-gray-100', location.pathname === '/precos' ? 'text-love-500' : 'text-foreground')}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Preços
-            </Link>
+          
             {user && (
               <Link
                 to="/dashboard"
