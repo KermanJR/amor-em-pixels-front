@@ -19,12 +19,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "./supabaseClient";
 import EditSite from "./pages/EditSite";
 import Dashboard from "./pages/Dashboard";
+import { motion } from 'framer-motion';
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
 
 const PrivateSite = () => {
   const { customUrl } = useParams<{ customUrl: string }>();
   const [siteData, setSiteData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [accessDenied, setAccessDenied] = useState(false);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [enteredPassword, setEnteredPassword] = useState('');
   const { toast } = useToast();
@@ -36,59 +38,73 @@ const PrivateSite = () => {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) {
-          // Se não estiver logado, exibe o prompt de senha
-          setShowPasswordPrompt(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // Se estiver logado, verifica se é o criador
-        const { data, error } = await supabase
-          .from('sites')
-          .select('*')
-          .eq('custom_url', customUrl)
-          .eq('user_id', user.id)
-          .single();
-
-        if (error || !data) {
-          // Não é o criador, mas permite acesso via senha
-          const { data: siteDataWithoutUser } = await supabase
+          // Usuário não autenticado, exibe o prompt de senha imediatamente
+          const { data: siteDataCheck, error: siteError } = await supabase
             .from('sites')
-            .select('*')
+            .select('password')
             .eq('custom_url', customUrl)
             .single();
 
-          if (!siteDataWithoutUser) {
+          if (siteError || !siteDataCheck) {
             throw new Error('Site não encontrado');
           }
-          setSiteData({
-            formData: {
-              ...siteDataWithoutUser.form_data,
-              relationshipStartDate: new Date(siteDataWithoutUser.form_data.relationshipStartDate),
-            },
-            templateType: siteDataWithoutUser.template_type,
-            plan: siteDataWithoutUser.plan,
-            media: siteDataWithoutUser.media,
-          });
+
+          // Verifica se o site tem senha
+          if (siteDataCheck.password) {
+            setShowPasswordPrompt(true);
+            setIsLoading(false);
+            return; // Para o fluxo aqui até que a senha seja inserida
+          } else {
+            // Se não houver senha, permite acesso público (opcional, dependendo da lógica desejada)
+            setShowPasswordPrompt(false);
+          }
         } else {
-          setSiteData({
-            formData: {
-              ...data.form_data,
-              relationshipStartDate: new Date(data.form_data.relationshipStartDate),
-            },
-            templateType: data.template_type,
-            plan: data.plan,
-            media: data.media,
-          });
+          // Usuário autenticado, verifica se é o criador
+          const { data, error } = await supabase
+            .from('sites')
+            .select('*')
+            .eq('custom_url', customUrl)
+            .eq('user_id', user.id)
+            .single();
+
+          if (error || !data) {
+            // Não é o criador, mas permite acesso via senha
+            const { data: siteDataWithoutUser } = await supabase
+              .from('sites')
+              .select('*')
+              .eq('custom_url', customUrl)
+              .single();
+
+            if (!siteDataWithoutUser) {
+              throw new Error('Site não encontrado');
+            }
+            setSiteData({
+              formData: {
+                ...siteDataWithoutUser.form_data,
+                relationshipStartDate: new Date(siteDataWithoutUser.form_data.relationshipStartDate),
+              },
+              templateType: siteDataWithoutUser.template_type,
+              plan: siteDataWithoutUser.plan,
+              media: siteDataWithoutUser.media,
+            });
+          } else {
+            setSiteData({
+              formData: {
+                ...data.form_data,
+                relationshipStartDate: new Date(data.form_data.relationshipStartDate),
+              },
+              templateType: data.template_type,
+              plan: data.plan,
+              media: data.media,
+            });
+          }
         }
       } catch (error) {
-        setAccessDenied(true);
         toast({
           title: "Erro",
           description: "Acesso negado ou site não encontrado.",
           variant: "destructive",
         });
-      } finally {
         setIsLoading(false);
       }
     };
@@ -115,6 +131,7 @@ const PrivateSite = () => {
       return;
     }
 
+    // Senha correta, carrega os dados do site
     const { data: siteData } = await supabase
       .from('sites')
       .select('*')
@@ -131,6 +148,7 @@ const PrivateSite = () => {
       media: siteData.media,
     });
     setShowPasswordPrompt(false);
+    setIsLoading(false);
   };
 
   if (isLoading) {
@@ -141,7 +159,7 @@ const PrivateSite = () => {
     );
   }
 
-  if (accessDenied || !siteData) {
+  if (!siteData && !showPasswordPrompt) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <h1 className="text-2xl font-bold">Acesso Negado</h1>
