@@ -32,7 +32,6 @@ const PLANS = {
   premium: { photos: 8, videos: 1, musics: 1, durationMonths: 12, price: 'R$49,90' },
 };
 
-// Atualizar o schema para incluir a senha
 const formSchema = z.object({
   coupleName: z.string().min(3, { message: 'Nome do casal deve ter pelo menos 3 caracteres' }).max(50),
   relationshipStartDate: z.date({ required_error: 'Por favor, selecione a data de início do relacionamento' }),
@@ -51,7 +50,7 @@ const Create = () => {
   const [videos, setVideos] = useState<File[]>([]);
   const [musics, setMusics] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic'); // Padrão agora é 'basic'
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [user, setUser] = useState<any>(null);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
@@ -62,6 +61,7 @@ const Create = () => {
   const [siteData, setSiteData] = useState<any>(null);
   const [customUrl, setCustomUrl] = useState<string>('');
   const [siteId, setSiteId] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState(false); // Novo estado para verificar e-mail
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -73,11 +73,18 @@ const Create = () => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      if (user) {
+        const { data: profile } = await supabase.auth.getUser();
+        setEmailVerified(!!profile.user?.email_confirmed_at); // Verifica se o e-mail foi confirmado
+      }
     };
     checkUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        setEmailVerified(!!session.user.email_confirmed_at);
+      }
     });
 
     return () => authListener.subscription.unsubscribe();
@@ -103,11 +110,38 @@ const Create = () => {
     setAuthLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      setIsAuthDialogOpen(false);
-      toast({ title: 'Sucesso', description: 'Login realizado com sucesso!' });
+      if (error) {
+        if (error.message.includes('Email not confirmed')) {
+          toast({
+            title: 'E-mail Não Verificado',
+            description: 'Por favor, verifique seu e-mail. Verifique sua caixa de entrada ou solicite o reenvio do link.',
+            variant: 'destructive',
+            action: (
+              <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
+                Reenviar Link
+              </Button>
+            ),
+          });
+        } else {
+          throw error;
+        }
+      } else if (!emailVerified) {
+        toast({
+          title: 'Aviso',
+          description: 'E-mail ainda não verificado. Verifique sua caixa de entrada ou solicite o reenvio do link.',
+          variant: 'warning',
+          action: (
+            <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
+              Reenviar Link
+            </Button>
+          ),
+        });
+      } else {
+        setIsAuthDialogOpen(false);
+        toast({ title: 'Sucesso', description: 'Login realizado com sucesso!' });
+      }
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha no login.', variant: 'destructive' });
+      toast({ title: 'Erro', description: `Falha no login: ${error.message}`, variant: 'destructive' });
     } finally {
       setAuthLoading(false);
     }
@@ -118,19 +152,71 @@ const Create = () => {
     try {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
-      toast({ title: 'Sucesso', description: 'Cadastro realizado! Verifique seu e-mail.' });
-      setIsLogin(true);
+      toast({
+        title: 'Sucesso',
+        description: 'Cadastro realizado! Enviamos um link de confirmação para seu e-mail. Verifique sua caixa de entrada (incluindo spam) e clique no link para ativar sua conta.',
+        variant: 'default',
+        action: (
+          <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
+            Reenviar Link
+          </Button>
+        ),
+      });
+      setIsLogin(true); // Volta para a aba de login após o cadastro
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha no cadastro.', variant: 'destructive' });
+      toast({ title: 'Erro', description: `Falha no cadastro: ${error.message}`, variant: 'destructive' });
     } finally {
       setAuthLoading(false);
     }
   };
 
+  const resendConfirmationEmail = async () => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      });
+      if (error) throw error;
+      toast({
+        title: 'Sucesso',
+        description: 'Um novo link de confirmação foi enviado para seu e-mail. Verifique sua caixa de entrada (incluindo spam).',
+        variant: 'default',
+      });
+    } catch (error) {
+      toast({ title: 'Erro', description: `Falha ao reenviar o link: ${error.message}`, variant: 'destructive' });
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveVideo = (index: number) => {
+    setVideos((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const onPreview = async (values: FormValues) => {
     if (!user) {
       setIsAuthDialogOpen(true);
-      toast({ title: 'Aviso', description: 'Você precisa estar logado para criar o site. Faça login ou cadastre-se.', variant: 'destructive' });
+      toast({
+        title: 'Aviso',
+        description: 'Você precisa estar logado para criar o site. Faça login ou cadastre-se.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!emailVerified) {
+      toast({
+        title: 'Aviso',
+        description: 'Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada ou solicite o reenvio do link.',
+        variant: 'warning',
+        action: (
+          <Button variant="outline" size="sm" onClick={resendConfirmationEmail}>
+            Reenviar Link
+          </Button>
+        ),
+      });
       return;
     }
 
@@ -158,21 +244,27 @@ const Create = () => {
     try {
       const photoUrls = await Promise.all(
         photos.map(async (file, index) => {
-          const { data, error } = await supabase.storage.from('media').upload(`${customUrl}/photos/photo-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
+          const { data, error } = await supabase.storage
+            .from('media')
+            .upload(`${customUrl}/photos/photo-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
           if (error) throw error;
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
       );
       const videoUrls = await Promise.all(
         videos.map(async (file, index) => {
-          const { data, error } = await supabase.storage.from('media').upload(`${customUrl}/videos/video-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
+          const { data, error } = await supabase.storage
+            .from('media')
+            .upload(`${customUrl}/videos/video-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
           if (error) throw error;
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
       );
       const musicUrls = await Promise.all(
         musics.map(async (file, index) => {
-          const { data, error } = await supabase.storage.from('media').upload(`${customUrl}/musics/music-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
+          const { data, error } = await supabase.storage
+            .from('media')
+            .upload(`${customUrl}/musics/music-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
           if (error) throw error;
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
@@ -190,23 +282,27 @@ const Create = () => {
         expiration_date: expirationDate.toISOString(),
         status,
         template_type: 'site',
-        password: siteData.formData.password, // Salvar a senha no banco
+        password: siteData.formData.password,
       };
 
       const { data, error } = await supabase.from('sites').insert([finalSiteData]).select('id').single();
       if (error) {
         if (error.code === '23505') {
-          toast({ title: 'Erro', description: 'Esta URL já está em uso.', variant: 'destructive' });
+          toast({ title: 'Erro', description: 'Esta URL já está em uso. Escolha outra.', variant: 'destructive' });
           return null;
         }
         throw error;
       }
 
-      toast({ title: 'Sucesso', description: status === 'active' ? 'Seu site foi criado com sucesso!' : 'Site criado como pendente. Complete o pagamento!' });
+      toast({
+        title: 'Sucesso',
+        description: status === 'active' ? 'Seu site foi criado com sucesso!' : 'Site criado como pendente. Aguarde a confirmação do pagamento.',
+        variant: 'default',
+      });
       setSiteId(data.id);
       return data.id;
     } catch (error) {
-      toast({ title: 'Erro', description: 'Erro ao criar o site.', variant: 'destructive' });
+      toast({ title: 'Erro', description: `Erro ao criar o site: ${error.message}`, variant: 'destructive' });
       return null;
     } finally {
       setIsSubmitting(false);
@@ -214,54 +310,41 @@ const Create = () => {
   };
 
   const handleCheckout = async () => {
-  const stripe = await stripePromise;
-  if (!stripe || !siteData) {
-    toast({
-      title: 'Erro',
-      description: 'Stripe ou dados do site não estão disponíveis.',
-      variant: 'destructive',
-    });
-    return;
-  }
+    const stripe = await stripePromise;
+    if (!stripe || !siteData) return;
 
-  const siteId = await createSite('pending');
-  if (!siteId) {
-    toast({
-      title: 'Erro',
-      description: 'Falha ao criar o site. Tente novamente.',
-      variant: 'destructive',
-    });
-    return;
-  }
+    const siteId = await createSite('pending');
+    if (!siteId) return;
 
-  setIsSubmitting(true);
-  try {
-    const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId }),
-    });
-    if (!response.ok) {
-      throw new Error(`Erro na requisição: ${response.status} - ${response.statusText}`);
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Falha ao criar sessão de checkout: ${errorText}`);
+      }
+      const { sessionId } = await response.json();
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      if (error) throw error;
+    } catch (error) {
+      toast({
+        title: 'Erro no Checkout',
+        description: `Falha ao iniciar o checkout: ${error.message}. Verifique sua conexão ou tente novamente mais tarde.`,
+        variant: 'destructive',
+        action: (
+          <Button variant="outline" size="sm" onClick={handleCheckout}>
+            Tentar Novamente
+          </Button>
+        ),
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    const { sessionId } = await response.json();
-    console.log('Session ID recebido:', sessionId);
-    const { error } = await stripe.redirectToCheckout({ sessionId });
-    if (error) {
-      console.error('Erro no redirectToCheckout:', error.message);
-      throw error;
-    }
-  } catch (error) {
-    console.error('Erro geral no checkout:', error);
-    toast({
-      title: 'Erro',
-      description: `Falha ao iniciar o checkout. Detalhes: ${error.message || 'Erro desconhecido'}`,
-      variant: 'destructive',
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const planLimits = getPlanLimits();
 
@@ -350,6 +433,7 @@ const Create = () => {
               onFilesChange={setPhotos}
               currentFiles={photos}
               existingFiles={[]}
+              onRemoveExisting={(index: number) => handleRemovePhoto(index)}
             />
             <MediaUpload
               type="video"
@@ -358,6 +442,7 @@ const Create = () => {
               onFilesChange={setVideos}
               currentFiles={videos}
               existingFiles={[]}
+              onRemoveExisting={(index: number) => handleRemoveVideo(index)}
             />
 
             <FormField
@@ -378,7 +463,6 @@ const Create = () => {
               )}
             />
 
-            {/* Novo campo para a senha */}
             <FormField
               control={form.control}
               name="password"
@@ -411,8 +495,25 @@ const Create = () => {
               <DialogDescription>{isLogin ? 'Entre para criar seu Card Digital.' : 'Crie uma conta para começar.'}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={authLoading}
+              />
+              <Input
+                type="password"
+                placeholder="Senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={authLoading}
+              />
+              {!emailVerified && !isLogin && (
+                <p className="text-sm text-yellow-600">
+                  Após o cadastro, verifique seu e-mail. Um link de confirmação foi enviado!
+                </p>
+              )}
             </div>
             <DialogFooter className="flex flex-col gap-2">
               <Button onClick={isLogin ? handleLogin : handleSignUp} disabled={authLoading}>
@@ -457,7 +558,6 @@ const Create = () => {
                     placeholder="Ex: joaoemaria"
                   />
                   <p className="text-sm text-gray-600">{`${window.location.origin}/${customUrl || '[sua-url]'}`}</p>
-                  {/* Exibir a senha na prévia */}
                   <p className="text-sm text-gray-600">
                     Senha para acesso: {siteData.formData.password} (Compartilhe esta senha com seu amor!)
                   </p>
