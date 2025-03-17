@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Página inicial -->
+  <url>
+    <loc>https://www.amorempixels.com/</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+
+
+  <!-- Página de Criação (alternativa) -->
+  <url>
+    <loc>https://www.amorempixels.com/criar</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+
+
+  <!-- Dashboard -->
+  <url>
+    <loc>https://www.amorempixels.com/dashboard</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Como Funciona -->
+  <url>
+    <loc>https://www.amorempixels.com/como-funciona</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+
+
+  <!-- Termos de Uso -->
+  <url>
+    <loc>https://www.amorempixels.com/termos</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Política de Privacidade -->
+  <url>
+    <loc>https://www.amorempixels.com/privacidade</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Editar Site -->
+  <url>
+    <loc>https://www.amorempixels.com/editar-site/:siteId</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Cookies -->
+  <url>
+    <loc>https://www.amorempixels.com/cookies</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Páginas de Sites Personalizados -->
+  <url>
+    <loc>https://www.amorempixels.com/:customUrl</loc>
+    <lastmod>2023-10-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
