@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Sparkles, Heart, Camera, Video, Music, Lock } from 'lucide-react';
+import { Calendar, Sparkles, Heart, Camera, Video, Music, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -235,6 +235,9 @@ const Create = () => {
 
     setIsSubmitting(true);
     try {
+      // Adicionar um pequeno atraso para garantir que o feedback visual seja exibido
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -245,7 +248,7 @@ const Create = () => {
       const { error } = await stripe.redirectToCheckout({ sessionId });
       if (error) throw error;
     } catch (error) {
-      toast({ title: 'Erro', description: 'Falha ao iniciar o checkout.', variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Falha ao iniciar o checkout. Tente novamente.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
@@ -387,8 +390,15 @@ const Create = () => {
               )}
             />
 
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Carregando...' : 'Criar e Visualizar'}
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Carregando...
+                </span>
+              ) : (
+                'Criar e Visualizar'
+              )}
             </Button>
           </form>
         </Form>
@@ -404,8 +414,17 @@ const Create = () => {
               <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <DialogFooter className="flex flex-col gap-2">
-              <Button onClick={isLogin ? handleLogin : handleSignUp} disabled={authLoading}>
-                {authLoading ? 'Processando...' : isLogin ? 'Entrar' : 'Cadastrar'}
+              <Button onClick={isLogin ? handleLogin : handleSignUp} disabled={authLoading} className="w-full">
+                {authLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processando...
+                  </span>
+                ) : isLogin ? (
+                  'Entrar'
+                ) : (
+                  'Cadastrar'
+                )}
               </Button>
               <Button variant="link" onClick={() => setIsLogin(!isLogin)} disabled={authLoading}>
                 {isLogin ? 'Ainda não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
@@ -495,12 +514,28 @@ const Create = () => {
                   </div>
                 </div>
               </div>
-              <DialogFooter className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsPreviewModalOpen(false)}>
+              <DialogFooter className="flex flex-col sm:flex-row gap-3 sticky bottom-0 bg-white pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPreviewModalOpen(false)}
+                  className="w-full sm:w-auto"
+                >
                   Voltar
                 </Button>
-                <Button onClick={handleCheckout} disabled={isSubmitting || !customUrl}>
-                  {isSubmitting ? 'Processando...' : `Pagar e Criar (${PLANS[selectedPlan].price})`}
+                <Button
+                  onClick={handleCheckout}
+                  disabled={isSubmitting || !customUrl}
+                  className="w-full sm:w-auto min-h-[40px] text-sm sm:text-base font-medium touch-manipulation focus:ring-2 focus:ring-love-500 focus:outline-none"
+                  style={{ WebkitTapHighlightColor: 'transparent', zIndex: 10 }}
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Aguarde, você será redirecionado para o checkout...
+                    </span>
+                  ) : (
+                    `Pagar e Criar (${PLANS[selectedPlan].price})`
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
