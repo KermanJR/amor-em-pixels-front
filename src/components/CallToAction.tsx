@@ -65,7 +65,7 @@ const CallToAction = () => {
             </h2>
 
             <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto font-medium">
-              Comece agora a criar um site único com fotos, vídeos e músicas que contam a história do seu amor – 100% grátis!
+              Comece agora a criar um Card Digital único com fotos, vídeos e músicas que contam a história do seu amor!
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -74,15 +74,13 @@ const CallToAction = () => {
                   size="lg"
                   className="w-full sm:w-auto bg-gradient-to-r from-pink-600 to-purple-700 hover:from-pink-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 group transform hover:-translate-y-1"
                 >
-                  Criar meu site
+                  Criar meu Card Digital
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
             </div>
 
-            <p className="mt-4 text-sm text-gray-600 font-medium">
-              <span className="text-pink-600 font-bold">Grátis para sempre</span>, sem necessidade de cartão de crédito.
-            </p>
+           
           </div>
         </motion.div>
       </div>
