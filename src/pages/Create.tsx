@@ -382,7 +382,7 @@ const Create = () => {
               name="spotifyLink"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Link do Spotify (Opcional)</FormLabel>
+                  <FormLabel>Link do Spotify</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ex: https://open.spotify.com/track/..."
