@@ -7,26 +7,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User } from 'lucide-react';
+import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const PLANS = {
-  basic: { name: 'Básico', color: 'bg-blue-200 text-blue-800', description: '6 meses de duração, R$59,90' },
-  premium: { name: 'Premium', color: 'bg-amber-200 text-amber-800', description: '12 meses de duração, R$99,90' },
+  basic: { name: 'Básico', color: 'bg-blue-200 text-blue-800', description: '6 meses de duração, R$59,90', sites: 1 },
+  premium: { name: 'Premium', color: 'bg-amber-200 text-amber-800', description: '12 meses de duração, R$99,90', sites: 3 },
 };
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
-  const [userPlan, setUserPlan] = useState<any>({ package_type: 'basic' }); // Padrão agora é 'basic'
+  const [userPlan, setUserPlan] = useState<any>({ package_type: 'basic' });
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -42,7 +44,6 @@ const Dashboard = () => {
       }
       setUser(user);
 
-      // Simula a obtenção do plano do usuário (ajuste conforme sua lógica real de planos)
       const { data: planData } = await supabase
         .from('user_plans')
         .select('package_type, purchase_date')
@@ -101,6 +102,52 @@ const Dashboard = () => {
     }
   };
 
+  const handleDownloadPDF = async (site: any) => {
+    if (site.status !== 'active') {
+      toast({ title: 'Erro', description: 'O pagamento deve ser concluído para baixar o PDF.', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/${site.custom_url}`);
+
+      const tempDiv = document.createElement('div');
+      tempDiv.style.width = '210mm';
+      tempDiv.style.padding = '20mm';
+      tempDiv.style.background = '#FDF2F2';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      tempDiv.style.textAlign = 'center';
+
+      tempDiv.innerHTML = `
+        <h1 style="font-size: 36px; color: #872133; margin-bottom: 20px;">${site.form_data.coupleName}</h1>
+        <p style="font-size: 18px; color: #6B1A28; margin-bottom: 20px;">${site.form_data.message}</p>
+        <img src="${site.media.photos[0]}" style="max-width: 100%; height: auto; margin-bottom: 20px;" />
+        <p style="font-size: 14px; color: #B8860B;">Início: ${format(new Date(site.form_data.relationshipStartDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
+        <img src="${qrCodeUrl}" style="width: 100px; height: 100px; margin-top: 20px;" />
+        <p style="font-size: 12px; color: #6B1A28;">Escaneie para visitar nosso Card Digital</p>
+      `;
+
+      document.body.appendChild(tempDiv);
+      const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true });
+      document.body.removeChild(tempDiv);
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+      pdf.save(`${site.form_data.coupleName.replace(/&/g, '').trim()}_card.pdf`);
+      toast({ title: 'Sucesso', description: 'PDF baixado com sucesso!' });
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast({ title: 'Erro', description: 'Falha ao gerar o PDF.', variant: 'destructive' });
+    }
+  };
+
   const activeSites = sites.filter(site => site.status === 'active' && new Date(site.expiration_date) > new Date());
   const pendingSites = sites.filter(site => site.status === 'pending');
   const canceledSites = sites.filter(site => site.status === 'canceled' || (site.status === 'active' && new Date(site.expiration_date) <= new Date()));
@@ -137,8 +184,6 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
-
-
 
         {/* Seção de Sites */}
         {loading ? (
@@ -219,6 +264,16 @@ const Dashboard = () => {
                         <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Visitar
                       </Button>
+                      {site.plan === 'premium' && site.status === 'active' && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleDownloadPDF(site)}
+                          className="flex-1 text-xs sm:text-sm py-2"
+                        >
+                          <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Baixar PDF
+                        </Button>
+                      )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" className="flex-1 text-xs sm:text-sm py-2">
