@@ -214,29 +214,40 @@ const Create = () => {
   };
 
   const handleCheckout = async () => {
-    const stripe = await stripePromise;
-    if (!stripe || !siteData) return;
+  const stripe = await stripePromise;
+  if (!stripe || !siteData) return;
 
-    const siteId = await createSite('pending');
-    if (!siteId) return;
+  const siteId = await createSite('pending');
+  if (!siteId) return;
 
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId }),
-      });
-      //if (!response.ok) throw new Error('Falha ao criar sessão de checkout');
-      const { sessionId } = await response.json();
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      if (error) throw error;
-    } catch (error) {
-      //toast({ title: 'Erro', description: 'Falha ao iniciar o checkout.', variant: 'destructive' });
-    } finally {
-      setIsSubmitting(false);
+  setIsSubmitting(true);
+  try {
+    const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId }),
+    });
+    if (!response.ok) {
+      throw new Error(`Erro na requisição: ${response.status} - ${response.statusText}`);
     }
-  };
+    const { sessionId } = await response.json();
+    console.log('Session ID recebido:', sessionId); // Depuração
+    const { error } = await stripe.redirectToCheckout({ sessionId });
+    if (error) {
+      console.error('Erro no redirectToCheckout:', error.message); // Log detalhado
+      throw error; // Propaga o erro
+    }
+  } catch (error) {
+    console.error('Erro geral no checkout:', error); // Log do erro completo
+    toast({
+      title: 'Erro',
+      description: `Falha ao iniciar o checkout. Detalhes: ${error.message || 'Erro desconhecido'}`,
+      variant: 'destructive',
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const planLimits = getPlanLimits();
 
