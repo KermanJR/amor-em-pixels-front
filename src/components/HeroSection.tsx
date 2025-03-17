@@ -58,7 +58,7 @@ const HeroSection = () => {
           >
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md animate-pulse-slow">
               <Heart className="h-4 w-4 mr-1 text-white" />
-              <span className="text-sm font-semibold uppercase tracking-wide">Oferta Especial - 100% Grátis!</span>
+              <span className="text-sm font-semibold uppercase tracking-wide">Oferta Especial - R$ 29,90 Plano Básico</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-700">
@@ -83,9 +83,9 @@ const HeroSection = () => {
             </h1>
 
             <p className="text-lg md:text-xl text-gray-700 font-medium">
-              Crie um card digital personalizado em minutos com fotos, vídeos e músicas que vão emocionar seu amor para sempre!{' '}
-              <span className="text-pink-600 font-bold">Não perca essa chance!</span>
-            </p>
+  Crie um <span className="bg-gradient-to-r from-pink-600 to-purple-700 bg-clip-text text-transparent font-bold hover:scale-105 transition-transform duration-300">Card Digital</span> personalizado em minutos com fotos, vídeos e músicas que vão emocionar seu amor para sempre!{' '}
+  <span className="text-pink-600 font-bold">Não perca essa chance!</span>
+</p>
             <div className="flex flex-col sm:flex-row gap-4">
   <Link to="/criar">
     <Button
@@ -101,10 +101,7 @@ const HeroSection = () => {
 
 
             <div className="flex items-center flex-wrap gap-4 text-sm text-gray-600">
-              <div className="flex items-center">
-                <Heart className="h-5 w-5 text-pink-500 mr-1.5 animate-pulse" />
-                <span className="font-semibold">100% Grátis por tempo limitado</span>
-              </div>
+     
               <div className="h-1 w-1 rounded-full bg-gray-400"></div>
               <div className="flex items-center">
                 <Star className="h-4 w-4 text-yellow-400 mr-1 animate-twinkle" />
