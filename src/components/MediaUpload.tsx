@@ -176,7 +176,7 @@ const MediaUpload = ({
             {type === 'video' && 'Vídeos'}
           </Label>
           <span className="text-sm text-gray-500">
-            {currentFiles.length + existingFiles.length}/{maxFiles} {freeTier && '(versão gratuita)'}
+            {currentFiles.length + existingFiles.length}/{maxFiles} {freeTier}
           </span>
         </div>
         <div
