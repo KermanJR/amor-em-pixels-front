@@ -181,7 +181,7 @@ const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps
               key={mainPhotoIndex}
               src={photos[mainPhotoIndex]}
               alt={`Foto principal ${mainPhotoIndex + 1}`}
-              className="w-full h-auto max-h-80 object-cover rounded-lg shadow-md border border-gold-200 mb-4"
+              className="w-full h-auto max-h-80 object-contain rounded-lg shadow-md border border-gold-200 mb-4 aspect-[4/3] bg-gray-100"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
@@ -194,9 +194,9 @@ const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps
                     key={index}
                     src={photo}
                     alt={`Miniatura ${index + 1}`}
-                    className={`w-full h-20 object-cover rounded-md border cursor-pointer ${
+                    className={`w-full h-20 object-contain rounded-md border cursor-pointer ${
                       index === mainPhotoIndex ? 'border-wine-700 border-2' : 'border-gold-200'
-                    }`}
+                    } aspect-[4/3] bg-gray-100`}
                     onClick={() => handleThumbnailClick(index)}
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
