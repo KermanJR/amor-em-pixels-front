@@ -22,7 +22,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import QRCode from 'react-qr-code';
 import jsPDF from 'jspdf';
-import { Music } from 'lucide-react'; // Adicionado para o botão do Spotify
+import { Music } from 'lucide-react';
 
 const PLANS = {
   free: { sites: 1, photos: 3, videos: 1, musics: 1, durationMonths: 3 },
@@ -76,7 +76,7 @@ const EditSite = () => {
       specialDate: null,
       relationshipStartDate: null,
       message: '',
-      spotifyLink: '', // Valor padrão para o campo Spotify
+      spotifyLink: '',
     },
   });
 
@@ -103,9 +103,6 @@ const EditSite = () => {
       }
 
       console.log('Site data from Supabase:', site);
-      console.log('Special Date:', site.form_data.specialDate);
-      console.log('Relationship Start Date:', site.form_data.relationshipStartDate);
-      console.log('Spotify Link:', site.form_data.spotifyLink); // Depuração do Spotify
 
       setSelectedPlan(site.plan);
       setCustomUrl(site.custom_url);
@@ -113,13 +110,9 @@ const EditSite = () => {
       setExistingVideos(site.media.videos || []);
       setExistingMusics(site.media.musics || []);
 
-      const specialDate = site.form_data.specialDate
-        ? new Date(site.form_data.specialDate)
-        : null;
-      const relationshipStartDate = site.form_data.relationshipStartDate
-        ? new Date(site.form_data.relationshipStartDate)
-        : null;
-      const spotifyLink = site.form_data.spotifyLink || ''; // Carrega o link do Spotify, se existir
+      const specialDate = site.form_data.specialDate ? new Date(site.form_data.specialDate) : null;
+      const relationshipStartDate = site.form_data.relationshipStartDate ? new Date(site.form_data.relationshipStartDate) : null;
+      const spotifyLink = site.form_data.spotifyLink || '';
 
       const isValidSpecialDate = specialDate && !isNaN(specialDate.getTime());
       const isValidRelationshipStartDate = relationshipStartDate && !isNaN(relationshipStartDate.getTime());
@@ -129,7 +122,7 @@ const EditSite = () => {
         specialDate: isValidSpecialDate ? specialDate : null,
         relationshipStartDate: isValidRelationshipStartDate ? relationshipStartDate : null,
         message: site.form_data.message || '',
-        spotifyLink: spotifyLink, // Preenche o campo Spotify
+        spotifyLink: spotifyLink,
       });
     };
 
@@ -174,7 +167,7 @@ const EditSite = () => {
   };
 
   const onPreview = async (values: FormValues) => {
-    console.log('Form Values:', values); // Depuração
+    console.log('Form Submitted - Values:', values); // Depuração inicial
     if (!user) {
       setIsAuthDialogOpen(true);
       return;
@@ -194,20 +187,26 @@ const EditSite = () => {
       return;
     }
 
+    // Criando URLs temporárias para pré-visualização
+    const previewPhotos = [...existingPhotos, ...photos.map(file => URL.createObjectURL(file))];
+    const previewVideos = [...existingVideos, ...videos.map(file => URL.createObjectURL(file))];
+    const previewMusics = [...existingMusics, ...musics.map(file => URL.createObjectURL(file))];
+
     const previewData = {
       formData: { ...values },
       plan: selectedPlan,
       media: {
-        photos: [...existingPhotos, ...photos.map(file => URL.createObjectURL(file))],
-        videos: [...existingVideos, ...videos.map(file => URL.createObjectURL(file))],
-        musics: [...existingMusics, ...musics.map(file => URL.createObjectURL(file))],
-        spotifyLink: values.spotifyLink || '', // Inclui o link do Spotify na preview
+        photos: previewPhotos,
+        videos: previewVideos,
+        musics: previewMusics,
+        spotifyLink: values.spotifyLink || '',
       },
     };
 
-    console.log('Preview Data:', previewData); // Depuração
+    console.log('Preview Data Set:', previewData); // Depuração antes de setar
     setSiteData(previewData);
     setIsPreviewModalOpen(true);
+    console.log('Modal State:', { isPreviewModalOpen, siteData }); // Depuração após setar
   };
 
   const updateSite = async () => {
@@ -262,7 +261,7 @@ const EditSite = () => {
           ...siteData.formData,
           specialDate,
           relationshipStartDate,
-          spotifyLink: siteData.formData.spotifyLink || '', // Atualiza o link do Spotify
+          spotifyLink: siteData.formData.spotifyLink || '',
         },
         plan: selectedPlan,
         media: {
@@ -273,7 +272,7 @@ const EditSite = () => {
         expiration_date: expirationDate.toISOString(),
       };
 
-      console.log('Updating site with data:', updatedSiteData); // Depuração
+      console.log('Updating site with data:', updatedSiteData);
       const { error } = await supabase
         .from('sites')
         .update(updatedSiteData)
@@ -290,7 +289,7 @@ const EditSite = () => {
       toast({ title: 'Sucesso', description: 'Site atualizado com sucesso!' });
       navigate('/dashboard');
     } catch (error) {
-      console.error('Error updating site:', error); // Depuração
+      console.error('Error updating site:', error);
       toast({ title: 'Erro', description: 'Erro ao atualizar o site.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
@@ -326,12 +325,11 @@ const EditSite = () => {
     doc.save(`${customUrl}-preview.pdf`);
   };
 
-  const planLimits = getPlanLimits();
-
-  // Função para abrir o Spotify (opcional, pode ser expandida)
   const openSpotify = () => {
     window.open('https://open.spotify.com/', '_blank');
   };
+
+  const planLimits = getPlanLimits();
 
   return (
     <>
