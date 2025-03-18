@@ -356,7 +356,7 @@ const Dashboard = () => {
                             onClick={() => window.open(generateShareLink(siteUrl, 'whatsapp'), '_blank')}
                             className="flex-1 text-xs sm:text-sm py-2 bg-green-500 hover:bg-green-600 text-white"
                           >
-                            <Whatsapp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                             WhatsApp
                           </Button>
                           <Button
