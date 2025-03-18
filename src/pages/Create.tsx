@@ -576,30 +576,30 @@ const Create = () => {
                   </div>
                 </div>
               </div>
-              <DialogFooter className="flex flex-col sm:flex-row gap-3 sticky bottom-0 bg-white pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPreviewModalOpen(false)}
-                  className="w-full sm:w-auto"
-                >
-                  Voltar
-                </Button>
-                <Button
-                  onClick={handleCheckout}
-                  disabled={isSubmitting || !customUrl}
-                  className="w-full sm:w-auto min-h-[40px] text-sm sm:text-base font-medium touch-manipulation focus:ring-2 focus:ring-love-500 focus:outline-none"
-                  style={{ WebkitTapHighlightColor: 'transparent', zIndex: 10 }}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Aguarde, você será redirecionado para o checkout...
-                    </span>
-                  ) : (
-                    `Pagar e Criar (${PLANS[selectedPlan].price})`
-                  )}
-                </Button>
-              </DialogFooter>
+             <DialogFooter className="p-6 border-t flex flex-col sm:flex-row gap-3 bg-white">
+        <Button
+          variant="outline"
+          onClick={() => setIsPreviewModalOpen(false)}
+          className="w-full sm:w-auto"
+        >
+          Voltar
+        </Button>
+        <Button
+          onClick={handleCheckout}
+          disabled={isSubmitting || !customUrl}
+          className="w-full sm:w-auto min-h-[40px] text-sm sm:text-base font-medium touch-manipulation focus:ring-2 focus:ring-love-500 focus:outline-none"
+          style={{ WebkitTapHighlightColor: 'transparent', zIndex: 10 }}
+        >
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Aguarde, você será redirecionado para o checkout...
+            </span>
+          ) : (
+            `Pagar e Criar (${PLANS[selectedPlan].price})`
+          )}
+        </Button>
+      </DialogFooter>
             </DialogContent>
           </Dialog>
         )}
