@@ -409,7 +409,7 @@ const Create = () => {
                   <FormLabel>Senha para Acesso</FormLabel>
                   <FormControl>
                     <Input
-                      type="text"
+                      type="password"
                       placeholder="Digite uma senha (mín. 4 caracteres)"
                       {...field}
                     />
