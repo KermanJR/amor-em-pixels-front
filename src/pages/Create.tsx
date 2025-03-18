@@ -271,7 +271,7 @@ const Create = () => {
       window.location.href = `spotify://`; // Abre o app Spotify se instalado
     } else {
       // Abre em uma nova aba ou modal
-      setIsSpotifyModalOpen(true);
+      //setIsSpotifyModalOpen(true);
       // Simula um iframe (note que o Spotify bloqueia iframes, então redireciona)
       window.open(spotifyUrl, '_blank');
     }
