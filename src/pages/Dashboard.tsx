@@ -12,7 +12,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download } from 'lucide-react';
+import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download, Mail, MessageCircle, Twitter, Facebook } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import QRCode from 'qrcode';
 
@@ -40,6 +40,10 @@ const Dashboard = () => {
   const [selectedSite, setSelectedSite] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>(BACKGROUND_COLORS[0].value);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false); // Novo estado para o modal de e-mail
+  const [emailTo, setEmailTo] = useState(user?.email || ''); // E-mail pré-preenchido
+  const [emailSubject, setEmailSubject] = useState('Card Digital de Amor');
+  const [emailBody, setEmailBody] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -62,7 +66,7 @@ const Dashboard = () => {
       const { data, error } = await supabase
         .from('sites')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id');
 
       if (error) {
         toast({ title: 'Erro', description: 'Falha ao carregar seus Cards Digitais', variant: 'destructive' });
@@ -240,7 +244,58 @@ const Dashboard = () => {
       toast({ title: 'Erro', description: 'Falha ao gerar o template HTML.', variant: 'destructive' });
     }
   };
+
   const activeSites = sites.filter(site => site.status === 'active' && new Date(site.expiration_date) > new Date());
+
+  // Função para gerar links de compartilhamento
+  const generateShareLink = (siteUrl: string, platform: string) => {
+    const encodedUrl = encodeURIComponent(siteUrl);
+    const text = encodeURIComponent(`Confira nosso Card Digital de Amor! ${siteUrl}`);
+    switch (platform) {
+      case 'whatsapp':
+        return `https://api.whatsapp.com/send?text=${text}`;
+      case 'email':
+        return ''; // Será tratado pelo modal
+      case 'twitter':
+        return `https://twitter.com/intent/tweet?text=${text}`;
+      case 'facebook':
+        return `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+      default:
+        return siteUrl;
+    }
+  };
+
+  // Função para abrir o modal de e-mail
+  const openEmailDialog = (siteUrl: string) => {
+    setEmailBody(`Confira nosso Card Digital de Amor! ${siteUrl}`);
+    setIsEmailDialogOpen(true);
+  };
+
+  // Função para enviar e-mail
+  const sendEmail = async () => {
+    try {
+      const response = await fetch('https://amor-em-pixels.onrender.com/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: emailTo,
+          subject: emailSubject,
+          body: emailBody,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast({ title: 'Sucesso', description: 'E-mail enviado com sucesso!', variant: 'default' });
+        setIsEmailDialogOpen(false);
+      } else {
+        toast({ title: 'Erro', description: data.error || 'Falha ao enviar o e-mail.', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('Erro ao enviar e-mail:', error);
+      toast({ title: 'Erro', description: 'Falha ao enviar o e-mail.', variant: 'destructive' });
+    }
+  };
 
   return (
     <>
@@ -272,71 +327,108 @@ const Dashboard = () => {
           <>
             <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Cards Digitais Ativos</h2>
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {activeSites.map(site => (
-                <Card key={site.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="relative p-0">
-                    <img
-                      src={site.media.photos[0] || 'https://via.placeholder.com/300x120?text=Sem+Foto'}
-                      alt={`Foto de ${site.form_data.coupleName}`}
-                      className="h-32 sm:h-40 w-full object-cover rounded-t-lg"
-                    />
-                    <Badge className="absolute top-3 right-3 bg-green-500 text-white text-xs sm:text-sm">
-                      Ativo
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <CardTitle className="text-base sm:text-lg font-semibold truncate">{site.form_data.coupleName}</CardTitle>
-                    <CardDescription className="text-gray-600 mt-1 text-xs sm:text-sm">
-                      {site.plan.charAt(0).toUpperCase() + site.plan.slice(1)}
-                    </CardDescription>
-                    <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2 text-xs sm:text-sm">
-                      <p className="text-gray-600 flex items-center gap-1 truncate">
-                        <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <a href={`/${site.custom_url}`} target="_blank" rel="noopener noreferrer" className="underline">
-                          {window.location.origin}/{site.custom_url}
-                        </a>
-                      </p>
-                      <p className="text-gray-600 flex items-center gap-1">
-                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                        Criado: {format(new Date(site.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                      </p>
-                      <p className="text-gray-600 flex items-center gap-1">
-                        <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                        Expira: {formatDistanceToNow(new Date(site.expiration_date), { locale: ptBR, addSuffix: true })}
-                      </p>
-                    </div>
-                    <Separator className="my-3 sm:my-4" />
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate(`/editar-site/${site.id}`)}
-                        className="flex-1 text-xs sm:text-sm py-2"
-                      >
-                        <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => window.open(`/${site.custom_url}`, '_blank')}
-                        className="flex-1 text-xs sm:text-sm py-2"
-                      >
-                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Visitar
-                      </Button>
-                      {site.plan === 'premium' && site.status === 'active' && (
+              {activeSites.map(site => {
+                const siteUrl = `${window.location.origin}/${site.custom_url}`;
+                return (
+                  <Card key={site.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="relative p-0">
+                      <img
+                        src={site.media.photos[0] || 'https://via.placeholder.com/300x120?text=Sem+Foto'}
+                        alt={`Foto de ${site.form_data.coupleName}`}
+                        className="h-32 sm:h-40 w-full object-cover rounded-t-lg"
+                      />
+                      <Badge className="absolute top-3 right-3 bg-green-500 text-white text-xs sm:text-sm">
+                        Ativo
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <CardTitle className="text-base sm:text-lg font-semibold truncate">{site.form_data.coupleName}</CardTitle>
+                      <CardDescription className="text-gray-600 mt-1 text-xs sm:text-sm">
+                        {site.plan.charAt(0).toUpperCase() + site.plan.slice(1)}
+                      </CardDescription>
+                      <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2 text-xs sm:text-sm">
+                        <p className="text-gray-600 flex items-center gap-1 truncate">
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <a href={`/${site.custom_url}`} target="_blank" rel="noopener noreferrer" className="underline">
+                            {window.location.origin}/{site.custom_url}
+                          </a>
+                        </p>
+                        <p className="text-gray-600 flex items-center gap-1">
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                          Criado: {format(new Date(site.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                        </p>
+                        <p className="text-gray-600 flex items-center gap-1">
+                          <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                          Expira: {formatDistanceToNow(new Date(site.expiration_date), { locale: ptBR, addSuffix: true })}
+                        </p>
+                      </div>
+                      <Separator className="my-3 sm:my-4" />
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
-                          onClick={() => openHTMLDialog(site)}
+                          onClick={() => navigate(`/editar-site/${site.id}`)}
                           className="flex-1 text-xs sm:text-sm py-2"
                         >
-                          <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                          Baixar Card Digital
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Editar
                         </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => window.open(`/${site.custom_url}`, '_blank')}
+                          className="flex-1 text-xs sm:text-sm py-2"
+                        >
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Visitar
+                        </Button>
+                        {site.plan === 'premium' && site.status === 'active' && (
+                          <Button
+                            variant="outline"
+                            onClick={() => openHTMLDialog(site)}
+                            className="flex-1 text-xs sm:text-sm py-2"
+                          >
+                            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Baixar Card Digital
+                          </Button>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(generateShareLink(siteUrl, 'whatsapp'), '_blank')}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-green-500 hover:bg-green-600 text-white"
+                          >
+                            <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            WhatsApp
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => openEmailDialog(siteUrl)}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-blue-500 hover:bg-blue-600 text-white"
+                          >
+                            <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            E-mail
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(generateShareLink(siteUrl, 'twitter'), '_blank')}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-sky-500 hover:bg-sky-600 text-white"
+                          >
+                            <Twitter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Twitter
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(generateShareLink(siteUrl, 'facebook'), '_blank')}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-blue-700 hover:bg-blue-800 text-white"
+                          >
+                            <Facebook className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Facebook
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </>
         )}
@@ -399,6 +491,69 @@ const Dashboard = () => {
               disabled={!selectedPhoto}
             >
               Gerar HTML
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de E-mail */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviar por E-mail</DialogTitle>
+            <DialogDescription>
+              Insira o e-mail do destinatário ou use o seu e-mail pré-selecionado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label htmlFor="emailTo" className="block text-sm font-medium text-gray-700">
+                Para:
+              </label>
+              <input
+                id="emailTo"
+                type="email"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                placeholder="Digite o e-mail"
+              />
+            </div>
+            <div>
+              <label htmlFor="emailSubject" className="block text-sm font-medium text-gray-700">
+                Assunto:
+              </label>
+              <input
+                id="emailSubject"
+                type="text"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              />
+            </div>
+            <div>
+              <label htmlFor="emailBody" className="block text-sm font-medium text-gray-700">
+                Mensagem:
+              </label>
+              <textarea
+                id="emailBody"
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)} className="mr-2">
+              Cancelar
+            </Button>
+            <Button
+              onClick={sendEmail}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+              disabled={!emailTo}
+            >
+              Enviar
             </Button>
           </DialogFooter>
         </DialogContent>
