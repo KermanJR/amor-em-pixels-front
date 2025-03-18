@@ -17,12 +17,12 @@ import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MediaUpload from '@/components/MediaUpload';
 import SitePreview from '@/components/SitePreview';
-import MiniPreview from '@/components/MiniPreview';
 import { supabase } from '../supabaseClient';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import QRCode from 'react-qr-code';
 import { loadStripe } from '@stripe/stripe-js';
+import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride'; // Adicionando react-joyride
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -60,6 +60,7 @@ const Create = () => {
   const [siteData, setSiteData] = useState<any>(null);
   const [customUrl, setCustomUrl] = useState<string>('');
   const [siteId, setSiteId] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0); // Controle do step-by-step
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -265,34 +266,132 @@ const Create = () => {
 
   const planLimits = getPlanLimits();
 
+  // Configuração do tutorial com react-joyride
+  const [runTutorial, setRunTutorial] = useState(false);
+  const steps: Step[] = [
+    {
+      target: '.couple-name-field',
+      content: 'Primeiro, insira o nome do casal aqui.',
+      placement: 'right',
+      disableBeacon: true,
+    },
+    {
+      target: '.relationship-date-field',
+      content: 'Agora, selecione a data de início do relacionamento.',
+      placement: 'right',
+    },
+    {
+      target: '.message-field',
+      content: 'Escreva uma mensagem especial para o seu amor.',
+      placement: 'right',
+    },
+    {
+      target: '.media-upload-field',
+      content: 'Adicione fotos, vídeos ou músicas para personalizar seu Card.',
+      placement: 'right',
+    },
+    {
+      target: '.spotify-link-field',
+      content: 'Opcional: insira um link do Spotify para uma música especial.',
+      placement: 'right',
+    },
+    {
+      target: '.password-field',
+      content: 'Defina uma senha para proteger o acesso ao Card.',
+      placement: 'right',
+    },
+    {
+      target: '.submit-button',
+      content: 'Por fim, clique aqui para criar e visualizar seu Card!',
+      placement: 'bottom',
+    },
+  ];
+
+  const handleJoyrideCallback = (data: CallBackProps) => {
+    const { status } = data;
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTutorial(false);
+      localStorage.setItem('tutorialShown', 'true'); // Marca o tutorial como exibido
+    }
+  };
+
+  useEffect(() => {
+    const hasShownTutorial = localStorage.getItem('tutorialShown');
+    if (!hasShownTutorial && user) {
+      setRunTutorial(true);
+    }
+  }, [user]);
+
+  const nextStep = () => {
+    if (currentStep < 6) setCurrentStep(currentStep + 1); // 6 é o último passo (senha)
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
+  };
+
   return (
     <>
+      <Joyride
+        steps={steps}
+        run={runTutorial}
+        continuous
+        showSkipButton
+        showProgress
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            primaryColor: '#facc15', // Cor dourada para destacar
+            textColor: '#ffffff',
+            width: 300,
+            zIndex: 1000,
+          },
+          tooltip: {
+            borderRadius: 8,
+          },
+          buttonNext: {
+            backgroundColor: '#facc15',
+            color: '#000',
+          },
+          buttonBack: {
+            color: '#facc15',
+          },
+        }}
+      />
       <div className="max-w-5xl mx-auto py-12 px-4">
         <Navbar />
         <h1 className="text-3xl font-bold mb-6 mt-10 text-center">Crie seu Card de amor</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onPreview)} className="space-y-8">
-              <Tabs defaultValue="basic" onValueChange={(value) => setSelectedPlan(value as 'basic' | 'premium')}>
-                <TabsList className="grid grid-cols-2 mb-4">
-                  <TabsTrigger value="basic">Básico</TabsTrigger>
-                  <TabsTrigger value="premium">
-                    Premium <Sparkles className="h-4 w-4 ml-1 text-amber-500" />
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="basic">
-                  <p className="text-sm text-gray-600 mb-4">5 fotos, 1 vídeo, 1 música por R$29,90, válido por 6 meses.</p>
-                </TabsContent>
-                <TabsContent value="premium">
-                  <p className="text-sm text-gray-600 mb-4">8 fotos, 1 vídeo, 1 música por R$49,90, válido por 12 meses.</p>
-                </TabsContent>
-              </Tabs>
 
+        {/* Step-by-Step */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+            {['Nome', 'Data', 'Mensagem', 'Mídia', 'Spotify', 'Senha', 'Finalizar'].map((step, index) => (
+              <div
+                key={index}
+                className={`flex-1 text-center py-2 ${currentStep === index ? 'bg-gold-500 text-white' : 'bg-gray-200 text-gray-700'} rounded-md cursor-pointer transition-all duration-300`}
+                onClick={() => setCurrentStep(index)}
+              >
+                {step}
+              </div>
+            ))}
+          </div>
+          <div className="w-full h-1 bg-gray-200 rounded-full">
+            <div
+              className="h-1 bg-gold-500 rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / 6) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Formulário com base no passo atual */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onPreview)} className="space-y-8">
+            {currentStep === 0 && (
               <FormField
                 control={form.control}
                 name="coupleName"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="couple-name-field">
                     <FormLabel>Nome do Casal</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: João & Maria" {...field} />
@@ -301,12 +400,13 @@ const Create = () => {
                   </FormItem>
                 )}
               />
-
+            )}
+            {currentStep === 1 && (
               <FormField
                 control={form.control}
                 name="relationshipStartDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="relationship-date-field">
                     <FormLabel>Data de Início do Relacionamento</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -328,12 +428,13 @@ const Create = () => {
                   </FormItem>
                 )}
               />
-
+            )}
+            {currentStep === 2 && (
               <FormField
                 control={form.control}
                 name="message"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="message-field">
                     <FormLabel>Mensagem de Amor</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Escreva uma mensagem especial..." {...field} />
@@ -343,7 +444,8 @@ const Create = () => {
                   </FormItem>
                 )}
               />
-
+            )}
+            {currentStep === 3 && (
               <MediaUpload
                 type="image"
                 maxFiles={planLimits.photos}
@@ -352,22 +454,15 @@ const Create = () => {
                 currentFiles={photos}
                 existingFiles={[]}
                 onRemoveExisting={(index: number) => handleRemovePhoto(index)}
+                className="media-upload-field"
               />
-              <MediaUpload
-                type="video"
-                maxFiles={planLimits.videos}
-                maxSize={30}
-                onFilesChange={setVideos}
-                currentFiles={videos}
-                existingFiles={[]}
-                onRemoveExisting={(index: number) => handleRemoveVideo(index)}
-              />
-
+            )}
+            {currentStep === 4 && (
               <FormField
                 control={form.control}
                 name="spotifyLink"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="spotify-link-field">
                     <FormLabel>Link do Spotify (Opcional)</FormLabel>
                     <FormControl>
                       <Input
@@ -380,12 +475,13 @@ const Create = () => {
                   </FormItem>
                 )}
               />
-
+            )}
+            {currentStep === 5 && (
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="password-field">
                     <FormLabel>Senha para Acesso</FormLabel>
                     <FormControl>
                       <Input
@@ -399,8 +495,9 @@ const Create = () => {
                   </FormItem>
                 )}
               />
-
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+            )}
+            {currentStep === 6 && (
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto submit-button">
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -410,22 +507,29 @@ const Create = () => {
                   'Criar e Visualizar'
                 )}
               </Button>
-            </form>
-          </Form>
+            )}
 
-          {/* Pré-visualização Interativa */}
-          <MiniPreview
-            formData={watch}
-            media={{
-              photos,
-              videos,
-              musics,
-              spotifyLink: watch.spotifyLink || '',
-            }}
-            plan={selectedPlan}
-            customUrl={customUrl}
-          />
-        </div>
+            {/* Navegação entre passos */}
+            <div className="flex justify-between mt-4">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="w-1/3"
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                onClick={nextStep}
+                disabled={currentStep === 6}
+                className="w-1/3"
+              >
+                Próximo
+              </Button>
+            </div>
+          </form>
+        </Form>
 
         <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
           <DialogContent className="sm:max-w-md">
