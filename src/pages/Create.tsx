@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm, UseFormWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Calendar, Sparkles, Heart, Camera, Video, Music, Lock, Loader2, Copy } from 'lucide-react';
@@ -59,16 +59,12 @@ const Create = () => {
   const [siteData, setSiteData] = useState<any>(null);
   const [customUrl, setCustomUrl] = useState<string>('');
   const [siteId, setSiteId] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState(0); // Controle do step-by-step
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { coupleName: '', relationshipStartDate: null, message: '', spotifyLink: '', password: '' },
   });
-
-  // Monitorar os valores do formulário em tempo real
-  const watch = form.watch();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -265,185 +261,150 @@ const Create = () => {
 
   const planLimits = getPlanLimits();
 
-  const nextStep = () => {
-    if (currentStep < 6) setCurrentStep(currentStep + 1); // 6 é o último passo (senha)
-  };
-
-  const prevStep = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
-  };
-
   return (
     <>
-      <div className="max-w-5xl mx-auto py-12 px-4">
+      <div className="max-w-3xl mx-auto py-12 px-4">
         <Navbar />
         <h1 className="text-3xl font-bold mb-6 mt-10 text-center">Crie seu Card de amor</h1>
-
-        {/* Step-by-Step */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-            {['Nome', 'Data', 'Mensagem', 'Mídia', 'Spotify', 'Senha', 'Finalizar'].map((step, index) => (
-              <div
-                key={index}
-                className={`flex-1 text-center py-2 ${currentStep === index ? 'bg-gold-500 text-white' : 'bg-gray-200 text-gray-700'} rounded-md cursor-pointer transition-all duration-300`}
-                onClick={() => setCurrentStep(index)}
-              >
-                {step}
-              </div>
-            ))}
-          </div>
-          <div className="w-full h-1 bg-gray-200 rounded-full">
-            <div
-              className="h-1 bg-gold-500 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / 6) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-
-        {/* Formulário com base no passo atual */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onPreview)} className="space-y-8">
-            {currentStep === 0 && (
-              <FormField
-                control={form.control}
-                name="coupleName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Casal</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: João & Maria" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {currentStep === 1 && (
-              <FormField
-                control={form.control}
-                name="relationshipStartDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Início do Relacionamento</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn('w-[240px] justify-start text-left font-normal', !field.value && 'text-muted-foreground')}
-                          >
-                            <Calendar className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Selecione a data</span>}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {currentStep === 2 && (
-              <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mensagem de Amor</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Escreva uma mensagem especial..." {...field} />
-                    </FormControl>
-                    <FormDescription>{field.value.length}/500</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {currentStep === 3 && (
-              <MediaUpload
-                type="image"
-                maxFiles={planLimits.photos}
-                maxSize={5}
-                onFilesChange={setPhotos}
-                currentFiles={photos}
-                existingFiles={[]}
-                onRemoveExisting={(index: number) => handleRemovePhoto(index)}
-              />
-            )}
-            {currentStep === 4 && (
-              <FormField
-                control={form.control}
-                name="spotifyLink"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Link do Spotify (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex: https://open.spotify.com/track/..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Insira um link de uma música do Spotify para tocar no site.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {currentStep === 5 && (
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Senha para Acesso</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Digite uma senha (mín. 4 caracteres)"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Esta senha será necessária para acessar o site. Compartilhe-a com seu amor!</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {currentStep === 6 && (
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Carregando...
-                  </span>
-                ) : (
-                  'Criar e Visualizar'
-                )}
-              </Button>
-            )}
+            <Tabs defaultValue="basic" onValueChange={(value) => setSelectedPlan(value as 'basic' | 'premium')}>
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="basic">Básico</TabsTrigger>
+                <TabsTrigger value="premium">
+                  Premium <Sparkles className="h-4 w-4 ml-1 text-amber-500" />
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="basic">
+                <p className="text-sm text-gray-600 mb-4">5 fotos, 1 vídeo, 1 música por R$29,90, válido por 6 meses.</p>
+              </TabsContent>
+              <TabsContent value="premium">
+                <p className="text-sm text-gray-600 mb-4">8 fotos, 1 vídeo, 1 música por R$49,90, válido por 12 meses.</p>
+              </TabsContent>
+            </Tabs>
 
-            {/* Navegação entre passos */}
-            <div className="flex justify-between mt-4">
-              <Button
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                className="w-1/3"
-              >
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                onClick={nextStep}
-                disabled={currentStep === 6}
-                className="w-1/3"
-              >
-                Próximo
-              </Button>
-            </div>
+            <FormField
+              control={form.control}
+              name="coupleName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Casal</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: João & Maria" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="relationshipStartDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Data de Início do Relacionamento</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn('w-[240px] justify-start text-left font-normal', !field.value && 'text-muted-foreground')}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Selecione a data</span>}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mensagem de Amor</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Escreva uma mensagem especial..." {...field} />
+                  </FormControl>
+                  <FormDescription>{field.value.length}/500</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <MediaUpload
+              type="image"
+              maxFiles={planLimits.photos}
+              maxSize={5}
+              onFilesChange={setPhotos}
+              currentFiles={photos}
+              existingFiles={[]}
+              onRemoveExisting={(index: number) => handleRemovePhoto(index)}
+            />
+            <MediaUpload
+              type="video"
+              maxFiles={planLimits.videos}
+              maxSize={30}
+              onFilesChange={setVideos}
+              currentFiles={videos}
+              existingFiles={[]}
+              onRemoveExisting={(index: number) => handleRemoveVideo(index)}
+            />
+
+            <FormField
+              control={form.control}
+              name="spotifyLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link do Spotify (Opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: https://open.spotify.com/track/..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>Insira um link de uma música do Spotify para tocar no site.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha para Acesso</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Digite uma senha (mín. 4 caracteres)"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>Esta senha será necessária para acessar o site. Compartilhe-a com seu amor!</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Carregando...
+                </span>
+              ) : (
+                'Criar e Visualizar'
+              )}
+            </Button>
           </form>
         </Form>
 
