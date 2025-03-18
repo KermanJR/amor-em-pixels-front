@@ -86,185 +86,190 @@ const SitePreview = ({ formData, plan, media, customUrl = '' }: SitePreviewProps
   };
 
   return (
-    <div className="min-h-screen w-full overflow-y-auto font-sans bg-gradient-to-br from-wine-50 to-gold-50">
-      <div className="relative">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="min-h-screen w-full overflow-y-auto font-sans bg-black">
+  {/* Efeito de partículas sofisticado */}
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {[...Array(200)].map((_, idx) => (
+      <div
+        key={idx}
+        className="absolute w-1 h-1 bg-white rounded-full animate-float"
+        style={{
+          top: `${Math.random() * 100}%`,
+          left: `${Math.random() * 100}%`,
+          animationDelay: `${Math.random() * 5}s`,
+          animationDuration: `${Math.random() * 10 + 5}s`,
+          opacity: `${Math.random() * 0.5 + 0.2}`,
+        }}
+      />
+    ))}
+  </div>
+
+  {/* Gradiente premium */}
+  <motion.div
+    className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,rgba(0,0,0,0)_70%]"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 2 }}
+  />
+
+  {/* Conteúdo principal */}
+  <motion.div
+    className="relative max-w-4xl mx-auto py-20 px-6 text-center text-white"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.8 }}
+  >
+    {/* Cabeçalho */}
+    <motion.div
+      className="mb-16 relative"
+      initial={{ y: 20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+    >
+      <div className="absolute -top-12 left-1/2 -translate-x-1/2 h-16 w-16 bg-gradient-to-br from-gold-500 to-gold-700 rounded-full animate-pulse shadow-gold" />
+      <h1 className="text-5xl md:text-6xl font-serif bg-gradient-to-br from-gold-400 to-gold-600 bg-clip-text font-medium tracking-wide">
+        {formData.coupleName}
+      </h1>
+      <p className="text-xl md:text-2xl text-gray-300 mt-4 font-light">
+        Desde {formattedSpecialDate}
+      </p>
+    </motion.div>
+
+    {/* Tempo Juntos */}
+    <motion.div
+      className="mb-16 p-8 bg-gradient-to-br from-black via-gray-900 to-black rounded-xl shadow-2xl border border-gray-800 max-w-2xl mx-auto"
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.6, delay: 0.4 }}
+    >
+      <h2 className="text-2xl md:text-3xl text-gold-400 font-medium mb-6">Tempo Juntos</h2>
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+        {[
+          { value: timeTogether.years, label: 'Anos' },
+          { value: timeTogether.months, label: 'Meses' },
+          { value: timeTogether.days, label: 'Dias' },
+          { value: timeTogether.hours, label: 'Hrs' },
+          { value: timeTogether.minutes, label: 'Min' },
+          { value: timeTogether.seconds, label: 'Seg' },
+        ].map((item, idx) => (
           <motion.div
-            className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_80%,rgba(139,69,19,0.1)_0%,transparent_70%)]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            transition={{ duration: 2 }}
-          />
-          {[...Array(3)].map((_, idx) => (
-            <Heart
-              key={idx}
-              className={`absolute h-6 w-6 text-red-400/20 animate-float-${idx + 1}`}
-              style={{
-                top: `${Math.random() * 80 + 10}%`,
-                left: `${Math.random() * 80 + 10}%`,
-              }}
+            key={idx}
+            className="p-4 bg-gray-800 rounded-lg text-center hover:bg-gray-700 transition-colors"
+            whileHover={{ scale: 1.05 }}
+          >
+            <p className="text-2xl md:text-3xl font-semibold text-gold-400">{item.value}</p>
+            <p className="text-sm text-gray-300">{item.label}</p>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+
+    {/* Nossa Mensagem */}
+    <motion.div
+      className="mb-16 p-8 bg-gradient-to-br from-black via-gray-900 to-black rounded-xl shadow-2xl border border-gray-800 max-w-2xl mx-auto"
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.6, delay: 0.6 }}
+    >
+    
+      <p className="text-xl text-gray-200 italic font-light">"{formData.message}"</p>
+    </motion.div>
+
+    {/* Galeria de Fotos */}
+    <motion.div
+      className="mb-16 max-w-3xl mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.8 }}
+    >
+      <h2 className="text-2xl md:text-3xl text-gold-400 font-medium mb-6">Nossas Memórias</h2>
+      {/* Foto Principal */}
+      <motion.img
+        key={mainPhotoIndex}
+        src={photos[mainPhotoIndex]}
+        alt={`Foto principal ${mainPhotoIndex + 1}`}
+        className="w-full h-auto max-h-96 object-cover rounded-xl shadow-2xl border border-gray-800 mb-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      />
+      {/* Miniaturas */}
+      {photos.length > 1 && (
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+          {photos.map((photo, index) => (
+            <motion.img
+              key={index}
+              src={photo}
+              alt={`Miniatura ${index + 1}`}
+              className={`w-full h-24 object-cover rounded-lg border cursor-pointer transition-all ${
+                index === mainPhotoIndex ? 'border-gold-500 border-2' : 'border-gray-800'
+              }`}
+              onClick={() => handleThumbnailClick(index)}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
             />
           ))}
         </div>
-
-        {!spotifyLink && musics.length > 0 && <audio ref={audioRef} loop />}
-        
-        <motion.div
-          className="max-w-4xl mx-auto py-12 px-6 text-center text-gray-800"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-        >
-          <motion.div
-            className="mb-12 relative"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Heart className="absolute -top-8 left-1/2 -translate-x-1/2 h-12 w-12 text-wine-600 animate-pulse" />
-            <h1 className="text-4xl md:text-5xl font-serif text-wine-800 font-medium tracking-wide">
-              {formData.coupleName}
-            </h1>
-            <p className="text-lg md:text-xl text-gold-600 mt-2 font-light">
-              Início: {formattedSpecialDate}
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="mb-12 p-6 bg-white rounded-lg shadow-lg border border-gold-100 max-w-2xl mx-auto"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <h2 className="text-xl md:text-2xl text-wine-800 font-medium mb-4">Tempo Juntos</h2>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-              {[
-                { value: timeTogether.years, label: 'Anos' },
-                { value: timeTogether.months, label: 'Meses' },
-                { value: timeTogether.days, label: 'Dias' },
-                { value: timeTogether.hours, label: 'Hrs' },
-                { value: timeTogether.minutes, label: 'Min' },
-                { value: timeTogether.seconds, label: 'Seg' },
-              ].map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  className="p-2 bg-gold-50 rounded text-center hover:bg-gold-100 transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <p className="text-lg md:text-xl font-semibold text-wine-800">{item.value}</p>
-                  <p className="text-xs text-gold-600">{item.label}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="mb-12 p-6 bg-white rounded-lg shadow-lg border border-gold-100 max-w-2xl mx-auto"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <h2 className="text-xl md:text-2xl text-wine-800 font-medium mb-4">Nossa Mensagem</h2>
-            <p className="text-lg text-gray-700 italic">"{formData.message}"</p>
-          </motion.div>
-
-          {/* Galeria de Fotos */}
-          <motion.div
-            className="mb-12 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-          >
-            <h2 className="text-xl md:text-2xl text-wine-800 font-medium mb-4">Nossas Memórias</h2>
-            {/* Foto Principal */}
-            <motion.img
-              key={mainPhotoIndex}
-              src={photos[mainPhotoIndex]}
-              alt={`Foto principal ${mainPhotoIndex + 1}`}
-              className="w-full h-auto max-h-80 object-contain rounded-lg shadow-md border border-gold-200 mb-4 aspect-[4/3] bg-gray-100"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            />
-            {/* Miniaturas */}
-            {photos.length > 1 && (
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-                {photos.map((photo, index) => (
-                  <motion.img
-                    key={index}
-                    src={photo}
-                    alt={`Miniatura ${index + 1}`}
-                    className={`w-full h-20 object-contain rounded-md border cursor-pointer ${
-                      index === mainPhotoIndex ? 'border-wine-700 border-2' : 'border-gold-200'
-                    } aspect-[4/3] bg-gray-100`}
-                    onClick={() => handleThumbnailClick(index)}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.2 }}
-                  />
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* Vídeo */}
-          {videos.length > 0 && (
-            <motion.div
-              className="mb-12 max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.0 }}
-            >
-              <video ref={videoRef} controls className="w-full rounded-lg shadow-md border border-gold-200">
-                <source src={videos[0]} type="video/mp4" />
-              </video>
-            </motion.div>
-          )}
-
-        
-        </motion.div>
-      </div>
-
-      {spotifyLink ? (
-        <motion.div
-          className="mb-12 max-w-md mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.4 }}
-        >
-          <iframe
-            src={getSpotifyEmbedUrl(spotifyLink)}
-            width="100%"
-            height="80"
-            frameBorder="0"
-            allowTransparency={true}
-            allow="encrypted-media"
-            className="rounded-lg shadow-md border border-gold-200"
-          />
-        </motion.div>
-      ) : musics.length > 0 && (
-        <motion.div
-          className="fixed bottom-8 right-8 z-50 flex items-center gap-3"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.4 }}
-        >
-          <motion.div
-            className="bg-white rounded-full shadow-md p-2 flex items-center gap-2 border border-gold-200"
-            whileHover={{ scale: 1.05 }}
-          >
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="p-2 bg-wine-700 text-white rounded-full hover:bg-wine-800 transition-all"
-            >
-              {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-            </motion.button>
-            <span className="text-sm text-wine-800">Nossa Música</span>
-          </motion.div>
-        </motion.div>
       )}
-    </div>
+    </motion.div>
+
+    {/* Vídeo */}
+    {videos.length > 0 && (
+      <motion.div
+        className="mb-16 max-w-2xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.0 }}
+      >
+        <video ref={videoRef} controls className="w-full rounded-xl shadow-2xl border border-gray-800">
+          <source src={videos[0]} type="video/mp4" />
+        </video>
+      </motion.div>
+    )}
+  </motion.div>
+
+  {/* Spotify ou Música */}
+  {spotifyLink ? (
+    <motion.div
+      className="mb-16 max-w-md mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 1.2 }}
+    >
+      <iframe
+        src={getSpotifyEmbedUrl(spotifyLink)}
+        width="100%"
+        height="80"
+        frameBorder="0"
+        allowTransparency={true}
+        allow="encrypted-media"
+        className="rounded-xl shadow-2xl border border-gray-800"
+      />
+    </motion.div>
+  ) : musics.length > 0 && (
+    <motion.div
+      className="fixed bottom-8 right-8 z-50 flex items-center gap-3"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 1.2 }}
+    >
+      <motion.div
+        className="bg-gradient-to-br from-black via-gray-900 to-black rounded-full shadow-2xl p-3 flex items-center gap-3 border border-gray-800"
+        whileHover={{ scale: 1.05 }}
+      >
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsPlaying(!isPlaying)}
+          className="p-3 bg-gold-500 text-white rounded-full hover:bg-gold-600 transition-all"
+        >
+          {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+        </motion.button>
+        <span className="text-sm text-gold-400">Nossa Música</span>
+      </motion.div>
+    </motion.div>
+  )}
+</div>
   );
 };
 
