@@ -566,10 +566,7 @@ const Create = () => {
                           <span><strong>Música do Spotify:</strong> {siteData.formData.spotifyLink}</span>
                         </li>
                       )}
-                      <li className="flex items-center gap-2">
-                        <Lock className="h-4 w-4 text-love-500" />
-                        <span><strong>Senha:</strong> {siteData.formData.password}</span>
-                      </li>
+                     
                     </ul>
                   </div>
                 </div>
