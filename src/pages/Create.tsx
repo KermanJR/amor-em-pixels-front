@@ -22,7 +22,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import QRCode from 'react-qr-code';
 import { loadStripe } from '@stripe/stripe-js';
-import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride'; // Adicionando react-joyride
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -266,62 +265,6 @@ const Create = () => {
 
   const planLimits = getPlanLimits();
 
-  // Configuração do tutorial com react-joyride
-  const [runTutorial, setRunTutorial] = useState(false);
-  const steps: Step[] = [
-    {
-      target: '.couple-name-field',
-      content: 'Primeiro, insira o nome do casal aqui.',
-      placement: 'right',
-      disableBeacon: true,
-    },
-    {
-      target: '.relationship-date-field',
-      content: 'Agora, selecione a data de início do relacionamento.',
-      placement: 'right',
-    },
-    {
-      target: '.message-field',
-      content: 'Escreva uma mensagem especial para o seu amor.',
-      placement: 'right',
-    },
-    {
-      target: '.media-upload-field',
-      content: 'Adicione fotos, vídeos ou músicas para personalizar seu Card.',
-      placement: 'right',
-    },
-    {
-      target: '.spotify-link-field',
-      content: 'Opcional: insira um link do Spotify para uma música especial.',
-      placement: 'right',
-    },
-    {
-      target: '.password-field',
-      content: 'Defina uma senha para proteger o acesso ao Card.',
-      placement: 'right',
-    },
-    {
-      target: '.submit-button',
-      content: 'Por fim, clique aqui para criar e visualizar seu Card!',
-      placement: 'bottom',
-    },
-  ];
-
-  const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status } = data;
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      setRunTutorial(false);
-      localStorage.setItem('tutorialShown', 'true'); // Marca o tutorial como exibido
-    }
-  };
-
-  useEffect(() => {
-    const hasShownTutorial = localStorage.getItem('tutorialShown');
-    if (!hasShownTutorial && user) {
-      setRunTutorial(true);
-    }
-  }, [user]);
-
   const nextStep = () => {
     if (currentStep < 6) setCurrentStep(currentStep + 1); // 6 é o último passo (senha)
   };
@@ -332,32 +275,6 @@ const Create = () => {
 
   return (
     <>
-      <Joyride
-        steps={steps}
-        run={runTutorial}
-        continuous
-        showSkipButton
-        showProgress
-        callback={handleJoyrideCallback}
-        styles={{
-          options: {
-            primaryColor: '#facc15', // Cor dourada para destacar
-            textColor: '#ffffff',
-            width: 300,
-            zIndex: 1000,
-          },
-          tooltip: {
-            borderRadius: 8,
-          },
-          buttonNext: {
-            backgroundColor: '#facc15',
-            color: '#000',
-          },
-          buttonBack: {
-            color: '#facc15',
-          },
-        }}
-      />
       <div className="max-w-5xl mx-auto py-12 px-4">
         <Navbar />
         <h1 className="text-3xl font-bold mb-6 mt-10 text-center">Crie seu Card de amor</h1>
@@ -391,7 +308,7 @@ const Create = () => {
                 control={form.control}
                 name="coupleName"
                 render={({ field }) => (
-                  <FormItem className="couple-name-field">
+                  <FormItem>
                     <FormLabel>Nome do Casal</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: João & Maria" {...field} />
@@ -406,7 +323,7 @@ const Create = () => {
                 control={form.control}
                 name="relationshipStartDate"
                 render={({ field }) => (
-                  <FormItem className="relationship-date-field">
+                  <FormItem>
                     <FormLabel>Data de Início do Relacionamento</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -434,7 +351,7 @@ const Create = () => {
                 control={form.control}
                 name="message"
                 render={({ field }) => (
-                  <FormItem className="message-field">
+                  <FormItem>
                     <FormLabel>Mensagem de Amor</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Escreva uma mensagem especial..." {...field} />
@@ -454,7 +371,6 @@ const Create = () => {
                 currentFiles={photos}
                 existingFiles={[]}
                 onRemoveExisting={(index: number) => handleRemovePhoto(index)}
-                className="media-upload-field"
               />
             )}
             {currentStep === 4 && (
@@ -462,7 +378,7 @@ const Create = () => {
                 control={form.control}
                 name="spotifyLink"
                 render={({ field }) => (
-                  <FormItem className="spotify-link-field">
+                  <FormItem>
                     <FormLabel>Link do Spotify (Opcional)</FormLabel>
                     <FormControl>
                       <Input
@@ -481,7 +397,7 @@ const Create = () => {
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem className="password-field">
+                  <FormItem>
                     <FormLabel>Senha para Acesso</FormLabel>
                     <FormControl>
                       <Input
@@ -497,7 +413,7 @@ const Create = () => {
               />
             )}
             {currentStep === 6 && (
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto submit-button">
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
