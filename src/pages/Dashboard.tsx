@@ -12,7 +12,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download, Mail, MessageCircle, Twitter, Facebook } from 'lucide-react';
+import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download, Mail, MessageCircle, Twitter, Facebook, Lock } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import QRCode from 'qrcode';
 
@@ -40,10 +40,11 @@ const Dashboard = () => {
   const [selectedSite, setSelectedSite] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>(BACKGROUND_COLORS[0].value);
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false); // Novo estado para o modal de e-mail
-  const [emailTo, setEmailTo] = useState(user?.email || ''); // E-mail pré-preenchido
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [emailTo, setEmailTo] = useState(user?.email || '');
   const [emailSubject, setEmailSubject] = useState('Card Digital de Amor');
   const [emailBody, setEmailBody] = useState('');
+  const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({}); // Estado para controlar visibilidade da senha por site
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,11 +64,10 @@ const Dashboard = () => {
         .single();
       setUserPlan(planData || { package_type: 'basic', purchase_date: null });
 
-
       const { data, error } = await supabase
-  .from('sites')
-  .select('*')
-  .eq('user_id', user.id);
+        .from('sites')
+        .select('*')
+        .eq('user_id', user.id);
 
       if (error) {
         toast({ title: 'Erro', description: 'Falha ao carregar seus Cards Digitais', variant: 'destructive' });
@@ -92,12 +92,10 @@ const Dashboard = () => {
       toast({ title: 'Erro', description: 'O pagamento deve ser concluído para gerar o template.', variant: 'destructive' });
       return;
     }
-  
+
     try {
-      // Gerar o QR Code
       const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/${selectedSite.custom_url}`);
-  
-      // Criar o template HTML
+
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="pt-BR">
@@ -106,7 +104,6 @@ const Dashboard = () => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Card Digital Premium - ${selectedSite.form_data.coupleName}</title>
           <style>
-            /* Estilos do template premium */
             body {
               background-color: ${selectedColor};
               font-family: 'Georgia', serif;
@@ -218,7 +215,6 @@ const Dashboard = () => {
             <p class="message">"${selectedSite.form_data.message}"</p>
             <div class="details">
               <p>Início: ${format(new Date(selectedSite.form_data.relationshipStartDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
-            
             </div>
             <div class="qr-code">
               <img src="${qrCodeUrl}" alt="QR Code" />
@@ -228,8 +224,7 @@ const Dashboard = () => {
         </body>
         </html>
       `;
-  
-      // Criar e baixar o arquivo HTML
+
       const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -237,7 +232,7 @@ const Dashboard = () => {
       link.download = `${selectedSite.form_data.coupleName.replace(/&/g, '').trim()}_card.html`;
       link.click();
       URL.revokeObjectURL(url);
-  
+
       toast({ title: 'Sucesso', description: 'Template HTML premium gerado com sucesso!' });
       setIsHTMLDialogOpen(false);
     } catch (error) {
@@ -248,7 +243,6 @@ const Dashboard = () => {
 
   const activeSites = sites.filter(site => site.status === 'active' && new Date(site.expiration_date) > new Date());
 
-  // Função para gerar links de compartilhamento
   const generateShareLink = (siteUrl: string, platform: string) => {
     const encodedUrl = encodeURIComponent(siteUrl);
     const text = encodeURIComponent(`Confira nosso Card Digital de Amor! ${siteUrl}`);
@@ -256,7 +250,7 @@ const Dashboard = () => {
       case 'whatsapp':
         return `https://api.whatsapp.com/send?text=${text}`;
       case 'email':
-        return ''; // Será tratado pelo modal
+        return '';
       case 'twitter':
         return `https://twitter.com/intent/tweet?text=${text}`;
       case 'facebook':
@@ -266,71 +260,77 @@ const Dashboard = () => {
     }
   };
 
-// Função para abrir o modal de e-mail
-const openEmailDialog = (siteUrl: string, password: string) => {
-  const emailBody = `
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Confirme seu Cadastro</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
-      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-        <div style="background-color: #ff6b81; color: #ffffff; text-align: center; padding: 30px 20px;">
-          <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Bem-vindo(a) ao seu Card Digital!</h1>
+  const openEmailDialog = (siteUrl: string, password: string) => {
+    const emailBody = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Confirme seu Cadastro</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+          <div style="background-color: #ff6b81; color: #ffffff; text-align: center; padding: 30px 20px;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Bem-vindo(a) ao seu Card Digital!</h1>
+          </div>
+          <div style="padding: 30px 20px; color: #333333;">
+            <h2 style="font-size: 24px; margin-bottom: 20px; color: #ff6b81;">Acesse seu Card Digital</h2>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Olá!</p>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Obrigado por criar seu Card Digital de Amor. Acesse seu card clicando no botão abaixo:</p>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+              <a href="${siteUrl}" style="display: inline-block; padding: 12px 24px; background-color: #ff6b81; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; transition: background-color 0.3s ease;">Acessar Card</a>
+            </p>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;"><a href="${siteUrl}" style="color: #ff6b81; text-decoration: none; font-weight: bold;">${siteUrl}</a></p>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;"><strong>Senha para acesso:</strong> ${password}</p>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Atenciosamente,<br>Equipe Amor em Pixels</p>
+          </div>
+          <div style="text-align: center; padding: 20px; background-color: #fff0f5; color: #777777; font-size: 14px;">
+            <p style="margin: 0;">Se você não solicitou este card, pode ignorar este e-mail.</p>
+            <p style="margin: 0;">© 2025 Amor em Pixels. Todos os direitos reservados.</p>
+          </div>
         </div>
-        <div style="padding: 30px 20px; color: #333333;">
-          <h2 style="font-size: 24px; margin-bottom: 20px; color: #ff6b81;">Acesse seu Card Digital</h2>
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Olá!</p>
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Obrigado por criar seu Card Digital de Amor. Acesse seu card clicando no botão abaixo:</p>
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-            <a href="${siteUrl}" style="display: inline-block; padding: 12px 24px; background-color: #ff6b81; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; transition: background-color 0.3s ease;">Acessar Card</a>
-          </p>
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;"><a href="${siteUrl}" style="color: #ff6b81; text-decoration: none; font-weight: bold;">${siteUrl}</a></p>
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;"><strong>Senha para acesso:</strong> ${password}</p>
-          <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Atenciosamente,<br>Equipe Amor em Pixels</p>
-        </div>
-        <div style="text-align: center; padding: 20px; background-color: #fff0f5; color: #777777; font-size: 14px;">
-          <p style="margin: 0;">Se você não solicitou este card, pode ignorar este e-mail.</p>
-          <p style="margin: 0;">© 2025 Amor em Pixels. Todos os direitos reservados.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-  setEmailBody(emailBody);
-  setIsEmailDialogOpen(true);
-};
+      </body>
+      </html>
+    `;
+    setEmailBody(emailBody);
+    setIsEmailDialogOpen(true);
+  };
 
-// Função para enviar e-mail
-const sendEmail = async () => {
-  try {
-    const response = await fetch('https://amor-em-pixels.onrender.com/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: emailTo,
-        subject: emailSubject,
-        body: emailBody,
-        isHtml: true, // Adiciona um flag para indicar que é HTML
-      }),
-    });
+  const sendEmail = async () => {
+    try {
+      const response = await fetch('https://amor-em-pixels.onrender.com/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: emailTo,
+          subject: emailSubject,
+          body: emailBody,
+          isHtml: true,
+        }),
+      });
 
-    const data = await response.json();
-    if (response.ok) {
-      toast({ title: 'Sucesso', description: 'E-mail enviado com sucesso!', variant: 'default' });
-      setIsEmailDialogOpen(false);
-    } else {
-      toast({ title: 'Erro', description: data.error || 'Falha ao enviar o e-mail.', variant: 'destructive' });
+      const data = await response.json();
+      if (response.ok) {
+        toast({ title: 'Sucesso', description: 'E-mail enviado com sucesso!', variant: 'default' });
+        setIsEmailDialogOpen(false);
+      } else {
+        toast({ title: 'Erro', description: data.error || 'Falha ao enviar o e-mail.', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('Erro ao enviar e-mail:', error);
+      toast({ title: 'Erro', description: 'Falha ao enviar o e-mail.', variant: 'destructive' });
     }
-  } catch (error) {
-    console.error('Erro ao enviar e-mail:', error);
-    toast({ title: 'Erro', description: 'Falha ao enviar o e-mail.', variant: 'destructive' });
-  }
-};
+  };
+
+  // Função para alternar a visibilidade da senha
+  const togglePasswordVisibility = (siteId: string) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [siteId]: !prev[siteId],
+    }));
+  };
 
   return (
     <>
@@ -362,7 +362,7 @@ const sendEmail = async () => {
           <>
             <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Cards Digitais Ativos</h2>
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {activeSites.map(site => {
+              {activeSites.map((site) => {
                 const siteUrl = `${window.location.origin}/${site.custom_url}`;
                 return (
                   <Card key={site.id} className="hover:shadow-lg transition-shadow">
@@ -396,6 +396,23 @@ const sendEmail = async () => {
                           <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                           Expira: {formatDistanceToNow(new Date(site.expiration_date), { locale: ptBR, addSuffix: true })}
                         </p>
+                        {/* Botão para visualizar senha */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                          <Button
+                            variant="outline"
+                            onClick={() => togglePasswordVisibility(site.id)}
+                            className="text-xs sm:text-sm py-1 px-2"
+                          >
+                            <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            {showPassword[site.id] ? 'Ocultar Senha' : 'Ver Senha'}
+                          </Button>
+                          {showPassword[site.id] && (
+                            <span className="text-xs sm:text-sm text-gray-800">
+                              Senha: {site.form_data.password}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <Separator className="my-3 sm:my-4" />
                       <div className="flex flex-wrap gap-2">
@@ -436,7 +453,7 @@ const sendEmail = async () => {
                           </Button>
                           <Button
                             variant="outline"
-                            onClick={() => openEmailDialog(siteUrl)}
+                            onClick={() => openEmailDialog(siteUrl, site.form_data.password)}
                             className="flex-1 text-xs sm:text-sm py-2 bg-blue-500 hover:bg-blue-600 text-white"
                           >
                             <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
@@ -469,7 +486,6 @@ const sendEmail = async () => {
         )}
       </div>
 
-      {/* Modal para Escolha de Foto e Cor */}
       <Dialog open={isHTMLDialogOpen} onOpenChange={setIsHTMLDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -477,7 +493,6 @@ const sendEmail = async () => {
             <DialogDescription>Escolha uma foto e a cor de fundo.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
-            {/* Escolha da Foto */}
             <div>
               <h3 className="text-sm font-semibold mb-2">Escolha uma Foto</h3>
               {selectedSite && selectedSite.media.photos.length > 0 ? (
@@ -499,7 +514,6 @@ const sendEmail = async () => {
               )}
             </div>
 
-            {/* Escolha da Cor */}
             <div>
               <h3 className="text-sm font-semibold mb-2">Escolha a Cor de Fundo</h3>
               <div className="grid grid-cols-4 gap-2">
@@ -531,7 +545,6 @@ const sendEmail = async () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de E-mail */}
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
