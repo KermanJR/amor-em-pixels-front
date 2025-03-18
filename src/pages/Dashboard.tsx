@@ -100,159 +100,164 @@ const Dashboard = () => {
     setIsHTMLDialogOpen(true);
   };
 
-  const handleDownloadHTML = async () => {
-    if (!selectedSite || selectedSite.status !== 'active') {
-      toast({ title: 'Erro', description: 'O pagamento deve ser concluído para gerar o template.', variant: 'destructive' });
-      return;
-    }
-  
-    try {
-      const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/${selectedSite.custom_url}`);
-  
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Card Digital Premium - ${selectedSite.form_data.coupleName}</title>
-          <style>
+const handleDownloadHTML = async () => {
+  if (!selectedSite || selectedSite.status !== 'active') {
+    toast({ title: 'Erro', description: 'O pagamento deve ser concluído para gerar o template.', variant: 'destructive' });
+    return;
+  }
+
+  try {
+    const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/${selectedSite.custom_url}`);
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Card Digital Premium - ${selectedSite.form_data.coupleName}</title>
+        <style>
+          body {
+            background-color: ${selectedColor};
+            font-family: 'Georgia', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+          }
+          .card {
+            background-color: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            padding: 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+          }
+          .card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            z-index: 0;
+          }
+          .card::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            z-index: 0;
+          }
+          .card img.photo {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+          }
+          .card h1 {
+            font-size: 32px;
+            color: #872133;
+            margin-bottom: 16px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+          }
+          .card p.message {
+            font-size: 18px;
+            color: #6B1A28;
+            font-style: italic;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+          }
+          .card .details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+          }
+          .card .details p {
+            font-size: 16px;
+            color: #555;
+            margin: 0 auto;
+            text-align: center;
+          }
+          .card .qr-code {
+            margin-top: 24px;
+            position: relative;
+            z-index: 1;
+          }
+          .card .qr-code img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 8px;
+          }
+          .card .qr-code p {
+            font-size: 14px;
+            color: #555;
+          }
+          @media print {
             body {
-              background-color: ${selectedColor};
-              font-family: 'Georgia', serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
+              background-color: white;
             }
             .card {
-              background-color: white;
-              border-radius: 24px;
-              box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-              width: 90%;
-              max-width: 600px;
-              padding: 32px;
-              text-align: center;
-              position: relative;
-              overflow: hidden;
+              box-shadow: none;
+              border: 1px solid #ddd;
             }
-            .card::before {
-              content: '';
-              position: absolute;
-              top: -50px;
-              left: -50px;
-              width: 200px;
-              height: 200px;
-              background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
-              z-index: 0;
-            }
-            .card::after {
-              content: '';
-              position: absolute;
-              bottom: -50px;
-              right: -50px;
-              width: 200px;
-              height: 200px;
-              background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
-              z-index: 0;
-            }
-            .card img.photo {
-              width: 100%;
-              max-height: 300px;
-              object-fit: cover;
-              border-radius: 16px;
-              margin-bottom: 24px;
-              position: relative;
-              z-index: 1;
-            }
-            .card h1 {
-              font-size: 32px;
-              color: #872133;
-              margin-bottom: 16px;
-              font-weight: bold;
-              position: relative;
-              z-index: 1;
-            }
-            .card p.message {
-              font-size: 18px;
-              color: #6B1A28;
-              font-style: italic;
-              margin-bottom: 24px;
-              position: relative;
-              z-index: 1;
-            }
-            .card .details {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 24px;
-              position: relative;
-              z-index: 1;
-              text-align: center;
-            }
-            .card .details p {
-              font-size: 16px;
-              color: #555;
-              margin: 0 auto;
-              text-align: center;
-            }
-            .card .qr-code {
-              margin-top: 24px;
-              position: relative;
-              z-index: 1;
-            }
-            .card .qr-code img {
-              width: 100px;
-              height: 100px;
-              margin-bottom: 8px;
-            }
-            .card .qr-code p {
-              font-size: 14px;
-              color: #555;
-            }
-            @media print {
-              body {
-                background-color: white;
-              }
-              .card {
-                box-shadow: none;
-                border: 1px solid #ddd;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <img class="photo" src="${selectedPhoto}" alt="Foto do Casal" />
-            <h1>${selectedSite.form_data.coupleName}</h1>
-            <p class="message">"${selectedSite.form_data.message}"</p>
-            <div class="details">
-              <p>Início: ${format(new Date(selectedSite.form_data.relationshipStartDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
-            </div>
-            <div class="qr-code">
-              <img src="${qrCodeUrl}" alt="QR Code" />
-              <p>Escaneie para visitar nosso Card Digital</p>
-            </div>
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <img class="photo" src="${selectedPhoto}" alt="Foto do Casal" />
+          <h1>${selectedSite.form_data.coupleName}</h1>
+          <p class="message">"${selectedSite.form_data.message}"</p>
+          <div class="details">
+            <p>Início: ${format(new Date(selectedSite.form_data.relationshipStartDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
           </div>
-        </body>
-        </html>
-      `;
-  
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${selectedSite.form_data.coupleName.replace(/&/g, '').trim()}_card.html`;
-      link.click();
-      URL.revokeObjectURL(url);
-  
-      toast({ title: 'Sucesso', description: 'Template HTML premium gerado com sucesso!' });
-      setIsHTMLDialogOpen(false);
-    } catch (error) {
-      console.error('Erro ao gerar HTML:', error);
-      toast({ title: 'Erro', description: 'Falha ao gerar o template HTML.', variant: 'destructive' });
-    }
-  };
+          <div class="qr-code">
+            <img src="${qrCodeUrl}" alt="QR Code" />
+            <p>Escaneie para visitar nosso Card Digital</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Criar o Blob com o tipo correto
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+
+    // Criar o URL do objeto e iniciar o download
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${selectedSite.form_data.coupleName.replace(/&/g, '').trim()}_card.html`;
+    document.body.appendChild(link); // Adicionar ao DOM temporariamente
+    link.click();
+    document.body.removeChild(link); // Remover após o clique
+    URL.revokeObjectURL(url); // Liberar o objeto da memória
+
+    toast({ title: 'Sucesso', description: 'Template HTML premium gerado com sucesso!' });
+    setIsHTMLDialogOpen(false);
+  } catch (error) {
+    console.error('Erro ao gerar HTML:', error);
+    toast({ title: 'Erro', description: 'Falha ao gerar o template HTML.', variant: 'destructive' });
+  }
+};
 
   const activeSites = sites.filter(site => site.status === 'active' && new Date(site.expiration_date) > new Date());
 
