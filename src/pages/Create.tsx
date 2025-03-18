@@ -59,7 +59,7 @@ const Create = () => {
   const [siteData, setSiteData] = useState<any>(null);
   const [customUrl, setCustomUrl] = useState<string>('');
   const [siteId, setSiteId] = useState<string | null>(null);
-  const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false); // Novo estado para o modal do Spotify
+  const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false); // Modal para abrir o Spotify
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -262,16 +262,19 @@ const Create = () => {
 
   const planLimits = getPlanLimits();
 
-  // Função para converter o link do Spotify em URL de embed
-  const getSpotifyEmbedUrl = (spotifyLink: string) => {
-    if (!spotifyLink) return '';
-    // Extrair o ID da música ou playlist a partir do link
-    const trackIdMatch = spotifyLink.match(/track\/([a-zA-Z0-9]+)/) || spotifyLink.match(/playlist\/([a-zA-Z0-9]+)/);
-    if (trackIdMatch && trackIdMatch[1]) {
-      const id = trackIdMatch[1];
-      return `https://open.spotify.com/embed/track/${id}`; // Ajuste para playlist se necessário
+  // Função para abrir o modal ou redirecionar para o Spotify
+  const openSpotify = () => {
+    // Tenta abrir no modal (se suportado) ou redireciona
+    const spotifyUrl = 'https://open.spotify.com/';
+    if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+      // Se for um PWA ou app instalado, tenta abrir o app Spotify
+      window.location.href = `spotify://`; // Abre o app Spotify se instalado
+    } else {
+      // Abre em uma nova aba ou modal
+      setIsSpotifyModalOpen(true);
+      // Simula um iframe (note que o Spotify bloqueia iframes, então redireciona)
+      window.open(spotifyUrl, '_blank');
     }
-    return '';
   };
 
   return (
@@ -383,19 +386,17 @@ const Create = () => {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>Insira um link de uma música do Spotify para tocar no site.</FormDescription>
+                  <FormDescription>Insira ou selecione um link de uma música do Spotify.</FormDescription>
                   <FormMessage />
-                  {field.value && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsSpotifyModalOpen(true)}
-                      className="mt-2"
-                    >
-                      <Music className="h-4 w-4 mr-2" />
-                      Ouvir no Modal
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={openSpotify}
+                    className="mt-2"
+                  >
+                    <Music className="h-4 w-4 mr-2" />
+                    Abrir Spotify
+                  </Button>
                 </FormItem>
               )}
             />
@@ -564,15 +565,7 @@ const Create = () => {
                       {siteData.formData.spotifyLink && (
                         <li className="flex items-center gap-2">
                           <Music className="h-4 w-4 text-love-500" />
-                          <span><strong>Música do Spotify:</strong> Adicionada</span>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setIsSpotifyModalOpen(true)}
-                            size="sm"
-                          >
-                            <Music className="h-4 w-4 mr-1" /> Ouvir
-                          </Button>
+                          <span><strong>Música do Spotify:</strong> {siteData.formData.spotifyLink}</span>
                         </li>
                       )}
                       <li className="flex items-center gap-2">
@@ -611,31 +604,28 @@ const Create = () => {
           </Dialog>
         )}
 
-        {/* Modal do Spotify */}
+        {/* Modal para abrir o Spotify (simula redirecionamento) */}
         <Dialog open={isSpotifyModalOpen} onOpenChange={setIsSpotifyModalOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Reprodutor de Música do Spotify</DialogTitle>
+              <DialogTitle>Selecione uma Música no Spotify</DialogTitle>
               <DialogDescription>
-                Ouça a música selecionada diretamente aqui. Feche o modal para retornar.
+                Clique no botão abaixo para abrir o Spotify. Procure sua música, copie o link e cole no campo acima.
               </DialogDescription>
             </DialogHeader>
-            <div className="w-full h-[400px]">
-              {siteData?.formData.spotifyLink && (
-                <iframe
-                  src={getSpotifyEmbedUrl(siteData.formData.spotifyLink)}
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  allow="encrypted-media"
-                  title="Spotify Player"
-                  style={{ borderRadius: '8px' }}
-                />
-              )}
-              {!siteData?.formData.spotifyLink && (
-                <p className="text-center text-gray-600">Nenhum link do Spotify foi fornecido.</p>
-              )}
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="default"
+                onClick={openSpotify}
+                className="w-full sm:w-auto"
+              >
+                <Music className="h-4 w-4 mr-2" />
+                Abrir Spotify
+              </Button>
             </div>
+            <p className="text-sm text-gray-600 mt-4 text-center">
+              Dica: Após encontrar a música, copie o link da URL (ex.: https://open.spotify.com/track/...) e cole no campo "Link do Spotify".
+            </p>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsSpotifyModalOpen(false)}>
                 Fechar
