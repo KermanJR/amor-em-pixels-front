@@ -405,7 +405,7 @@ const Dashboard = () => {
                             className="text-xs sm:text-sm py-1 px-2"
                           >
                             <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            {showPassword[site.id] ? 'Ocultar Senha' : 'Ver Senha'}
+                            {showPassword[site.password] ? 'Ocultar Senha' : 'Ver Senha'}
                           </Button>
                           {showPassword[site.id] && (
                             <span className="text-xs sm:text-sm text-gray-800">
