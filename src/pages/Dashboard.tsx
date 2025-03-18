@@ -12,7 +12,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download, Share2, Mail, Twitter, Facebook, Whatsapp } from 'lucide-react';
+import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download, Share2, Mail, Twitter, Facebook, MessageCircle } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import QRCode from 'qrcode';
 
