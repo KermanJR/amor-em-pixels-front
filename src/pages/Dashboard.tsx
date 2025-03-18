@@ -12,7 +12,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download } from 'lucide-react';
+import { Trash2, CreditCard, Eye, Edit, Plus, Calendar, Heart, Clock, Star, User, Download, Share2, Mail, Twitter, Facebook, Whatsapp } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import QRCode from 'qrcode';
 
@@ -42,6 +42,24 @@ const Dashboard = () => {
   const [selectedColor, setSelectedColor] = useState<string>(BACKGROUND_COLORS[0].value);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Função para gerar links de compartilhamento
+  const generateShareLink = (siteUrl: string, platform: string) => {
+    const encodedUrl = encodeURIComponent(siteUrl);
+    const text = encodeURIComponent(`Confira nosso Card Digital de Amor! ${siteUrl}`);
+    switch (platform) {
+      case 'whatsapp':
+        return `https://api.whatsapp.com/send?text=${text}`;
+      case 'email':
+        return `mailto:?subject=Card Digital de Amor&body=${text}`;
+      case 'twitter':
+        return `https://twitter.com/intent/tweet?text=${text}`;
+      case 'facebook':
+        return `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+      default:
+        return siteUrl;
+    }
+  };
 
   useEffect(() => {
     const fetchUserAndData = async () => {
@@ -89,10 +107,8 @@ const Dashboard = () => {
     }
   
     try {
-      // Gerar o QR Code
       const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/${selectedSite.custom_url}`);
   
-      // Criar o template HTML
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="pt-BR">
@@ -101,7 +117,6 @@ const Dashboard = () => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Card Digital Premium - ${selectedSite.form_data.coupleName}</title>
           <style>
-            /* Estilos do template premium */
             body {
               background-color: ${selectedColor};
               font-family: 'Georgia', serif;
@@ -213,7 +228,6 @@ const Dashboard = () => {
             <p class="message">"${selectedSite.form_data.message}"</p>
             <div class="details">
               <p>Início: ${format(new Date(selectedSite.form_data.relationshipStartDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
-            
             </div>
             <div class="qr-code">
               <img src="${qrCodeUrl}" alt="QR Code" />
@@ -224,7 +238,6 @@ const Dashboard = () => {
         </html>
       `;
   
-      // Criar e baixar o arquivo HTML
       const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -240,6 +253,7 @@ const Dashboard = () => {
       toast({ title: 'Erro', description: 'Falha ao gerar o template HTML.', variant: 'destructive' });
     }
   };
+
   const activeSites = sites.filter(site => site.status === 'active' && new Date(site.expiration_date) > new Date());
 
   return (
@@ -272,71 +286,109 @@ const Dashboard = () => {
           <>
             <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Cards Digitais Ativos</h2>
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {activeSites.map(site => (
-                <Card key={site.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="relative p-0">
-                    <img
-                      src={site.media.photos[0] || 'https://via.placeholder.com/300x120?text=Sem+Foto'}
-                      alt={`Foto de ${site.form_data.coupleName}`}
-                      className="h-32 sm:h-40 w-full object-cover rounded-t-lg"
-                    />
-                    <Badge className="absolute top-3 right-3 bg-green-500 text-white text-xs sm:text-sm">
-                      Ativo
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <CardTitle className="text-base sm:text-lg font-semibold truncate">{site.form_data.coupleName}</CardTitle>
-                    <CardDescription className="text-gray-600 mt-1 text-xs sm:text-sm">
-                      {site.plan.charAt(0).toUpperCase() + site.plan.slice(1)}
-                    </CardDescription>
-                    <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2 text-xs sm:text-sm">
-                      <p className="text-gray-600 flex items-center gap-1 truncate">
-                        <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <a href={`/${site.custom_url}`} target="_blank" rel="noopener noreferrer" className="underline">
-                          {window.location.origin}/{site.custom_url}
-                        </a>
-                      </p>
-                      <p className="text-gray-600 flex items-center gap-1">
-                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                        Criado: {format(new Date(site.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                      </p>
-                      <p className="text-gray-600 flex items-center gap-1">
-                        <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                        Expira: {formatDistanceToNow(new Date(site.expiration_date), { locale: ptBR, addSuffix: true })}
-                      </p>
-                    </div>
-                    <Separator className="my-3 sm:my-4" />
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate(`/editar-site/${site.id}`)}
-                        className="flex-1 text-xs sm:text-sm py-2"
-                      >
-                        <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => window.open(`/${site.custom_url}`, '_blank')}
-                        className="flex-1 text-xs sm:text-sm py-2"
-                      >
-                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Visitar
-                      </Button>
-                      {site.plan === 'premium' && site.status === 'active' && (
+              {activeSites.map(site => {
+                const siteUrl = `${window.location.origin}/${site.custom_url}`;
+                return (
+                  <Card key={site.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="relative p-0">
+                      <img
+                        src={site.media.photos[0] || 'https://via.placeholder.com/300x120?text=Sem+Foto'}
+                        alt={`Foto de ${site.form_data.coupleName}`}
+                        className="h-32 sm:h-40 w-full object-cover rounded-t-lg"
+                      />
+                      <Badge className="absolute top-3 right-3 bg-green-500 text-white text-xs sm:text-sm">
+                        Ativo
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <CardTitle className="text-base sm:text-lg font-semibold truncate">{site.form_data.coupleName}</CardTitle>
+                      <CardDescription className="text-gray-600 mt-1 text-xs sm:text-sm">
+                        {site.plan.charAt(0).toUpperCase() + site.plan.slice(1)}
+                      </CardDescription>
+                      <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2 text-xs sm:text-sm">
+                        <p className="text-gray-600 flex items-center gap-1 truncate">
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <a href={siteUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                            {siteUrl}
+                          </a>
+                        </p>
+                        <p className="text-gray-600 flex items-center gap-1">
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                          Criado: {format(new Date(site.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                        </p>
+                        <p className="text-gray-600 flex items-center gap-1">
+                          <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                          Expira: {formatDistanceToNow(new Date(site.expiration_date), { locale: ptBR, addSuffix: true })}
+                        </p>
+                      </div>
+                      <Separator className="my-3 sm:my-4" />
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
-                          onClick={() => openHTMLDialog(site)}
+                          onClick={() => navigate(`/editar-site/${site.id}`)}
                           className="flex-1 text-xs sm:text-sm py-2"
                         >
-                          <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                          Baixar Card Digital
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Editar
                         </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => window.open(siteUrl, '_blank')}
+                          className="flex-1 text-xs sm:text-sm py-2"
+                        >
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Visitar
+                        </Button>
+                        {site.plan === 'premium' && site.status === 'active' && (
+                          <Button
+                            variant="outline"
+                            onClick={() => openHTMLDialog(site)}
+                            className="flex-1 text-xs sm:text-sm py-2"
+                          >
+                            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Baixar Card Digital
+                          </Button>
+                        )}
+                        {/* Botões de Compartilhamento */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(generateShareLink(siteUrl, 'whatsapp'), '_blank')}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-green-500 hover:bg-green-600 text-white"
+                          >
+                            <Whatsapp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            WhatsApp
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(generateShareLink(siteUrl, 'email'), '_blank')}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-blue-500 hover:bg-blue-600 text-white"
+                          >
+                            <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            E-mail
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(generateShareLink(siteUrl, 'twitter'), '_blank')}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-sky-500 hover:bg-sky-600 text-white"
+                          >
+                            <Twitter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Twitter
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => window.open(generateShareLink(siteUrl, 'facebook'), '_blank')}
+                            className="flex-1 text-xs sm:text-sm py-2 bg-blue-700 hover:bg-blue-800 text-white"
+                          >
+                            <Facebook className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Facebook
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </>
         )}
@@ -350,7 +402,6 @@ const Dashboard = () => {
             <DialogDescription>Escolha uma foto e a cor de fundo.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
-            {/* Escolha da Foto */}
             <div>
               <h3 className="text-sm font-semibold mb-2">Escolha uma Foto</h3>
               {selectedSite && selectedSite.media.photos.length > 0 ? (
@@ -372,7 +423,6 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Escolha da Cor */}
             <div>
               <h3 className="text-sm font-semibold mb-2">Escolha a Cor de Fundo</h3>
               <div className="grid grid-cols-4 gap-2">
