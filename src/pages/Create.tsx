@@ -59,6 +59,7 @@ const Create = () => {
   const [siteData, setSiteData] = useState<any>(null);
   const [customUrl, setCustomUrl] = useState<string>('');
   const [siteId, setSiteId] = useState<string | null>(null);
+  const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false); // Novo estado para o modal do Spotify
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -261,6 +262,18 @@ const Create = () => {
 
   const planLimits = getPlanLimits();
 
+  // Função para converter o link do Spotify em URL de embed
+  const getSpotifyEmbedUrl = (spotifyLink: string) => {
+    if (!spotifyLink) return '';
+    // Extrair o ID da música ou playlist a partir do link
+    const trackIdMatch = spotifyLink.match(/track\/([a-zA-Z0-9]+)/) || spotifyLink.match(/playlist\/([a-zA-Z0-9]+)/);
+    if (trackIdMatch && trackIdMatch[1]) {
+      const id = trackIdMatch[1];
+      return `https://open.spotify.com/embed/track/${id}`; // Ajuste para playlist se necessário
+    }
+    return '';
+  };
+
   return (
     <>
       <div className="max-w-3xl mx-auto py-12 px-4">
@@ -372,6 +385,17 @@ const Create = () => {
                   </FormControl>
                   <FormDescription>Insira um link de uma música do Spotify para tocar no site.</FormDescription>
                   <FormMessage />
+                  {field.value && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsSpotifyModalOpen(true)}
+                      className="mt-2"
+                    >
+                      <Music className="h-4 w-4 mr-2" />
+                      Ouvir no Modal
+                    </Button>
+                  )}
                 </FormItem>
               )}
             />
@@ -537,15 +561,18 @@ const Create = () => {
                         <Video className="h-4 w-4 text-love-500" />
                         <span><strong>Vídeos:</strong> {videos.length} {videos.length === 1 ? 'vídeo' : 'vídeos'}</span>
                       </li>
-                      {siteData.formData.spotifyLink ? (
+                      {siteData.formData.spotifyLink && (
                         <li className="flex items-center gap-2">
                           <Music className="h-4 w-4 text-love-500" />
                           <span><strong>Música do Spotify:</strong> Adicionada</span>
-                        </li>
-                      ) : (
-                        <li className="flex items-center gap-2">
-                          <Music className="h-4 w-4 text-love-500" />
-                          <span><strong>Música do Spotify:</strong> Não adicionada</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsSpotifyModalOpen(true)}
+                            size="sm"
+                          >
+                            <Music className="h-4 w-4 mr-1" /> Ouvir
+                          </Button>
                         </li>
                       )}
                       <li className="flex items-center gap-2">
@@ -583,6 +610,39 @@ const Create = () => {
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Modal do Spotify */}
+        <Dialog open={isSpotifyModalOpen} onOpenChange={setIsSpotifyModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Reprodutor de Música do Spotify</DialogTitle>
+              <DialogDescription>
+                Ouça a música selecionada diretamente aqui. Feche o modal para retornar.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="w-full h-[400px]">
+              {siteData?.formData.spotifyLink && (
+                <iframe
+                  src={getSpotifyEmbedUrl(siteData.formData.spotifyLink)}
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  allow="encrypted-media"
+                  title="Spotify Player"
+                  style={{ borderRadius: '8px' }}
+                />
+              )}
+              {!siteData?.formData.spotifyLink && (
+                <p className="text-center text-gray-600">Nenhum link do Spotify foi fornecido.</p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsSpotifyModalOpen(false)}>
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       <Footer />
     </>
