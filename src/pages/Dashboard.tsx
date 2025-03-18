@@ -266,37 +266,140 @@ const Dashboard = () => {
     }
   };
 
-  // Função para abrir o modal de e-mail
-  const openEmailDialog = (siteUrl: string) => {
-    setEmailBody(`Confira nosso Card Digital de Amor! ${siteUrl}`);
-    setIsEmailDialogOpen(true);
-  };
+ // Função para abrir o modal de e-mail
+const openEmailDialog = (siteUrl: string, password: string) => {
+  const emailBody = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Confirme seu Cadastro</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f9f9f9;
+          margin: 0;
+          padding: 0;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+          background-color: #ff6b81;
+          color: #ffffff;
+          text-align: center;
+          padding: 30px 20px;
+        }
+        .email-header h1 {
+          margin: 0;
+          font-size: 28px;
+          font-weight: bold;
+        }
+        .email-body {
+          padding: 30px 20px;
+          color: #333333;
+        }
+        .email-body h2 {
+          font-size: 24px;
+          margin-bottom: 20px;
+          color: #ff6b81;
+        }
+        .email-body p {
+          font-size: 16px;
+          line-height: 1.6;
+          margin-bottom: 20px;
+        }
+        .email-footer {
+          text-align: center;
+          padding: 20px;
+          background-color: #fff0f5;
+          color: #777777;
+          font-size: 14px;
+        }
+        .button {
+          display: inline-block;
+          padding: 12px 24px;
+          background-color: #ff6b81;
+          color: #ffffff;
+          text-decoration: none;
+          border-radius: 6px;
+          font-size: 16px;
+          font-weight: bold;
+          transition: background-color 0.3s ease;
+        }
+        .button:hover {
+          background-color: #ff4757;
+        }
+        .link {
+          color: #ff6b81;
+          text-decoration: none;
+          font-weight: bold;
+        }
+        .link:hover {
+          text-decoration: underline;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="email-header">
+          <h1>Bem-vindo(a) ao seu Card Digital!</h1>
+        </div>
+        <div class="email-body">
+          <h2>Acesse seu Card Digital</h2>
+          <p>Olá!</p>
+          <p>Obrigado por criar seu Card Digital de Amor. Acesse seu card clicando no botão abaixo:</p>
+          <p>
+            <a href="${siteUrl}" class="button">Acessar Card</a>
+          </p>
+          <p>Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
+          <p><a href="${siteUrl}" class="link">${siteUrl}</a></p>
+          <p><strong>Senha para acesso:</strong> ${password}</p>
+          <p>Atenciosamente,<br>Equipe Amor em Pixels</p>
+        </div>
+        <div class="email-footer">
+          <p>Se você não solicitou este card, pode ignorar este e-mail.</p>
+          <p>© 2025 Amor em Pixels. Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  setEmailBody(emailBody);
+  setIsEmailDialogOpen(true);
+};
 
-  // Função para enviar e-mail
-  const sendEmail = async () => {
-    try {
-      const response = await fetch('https://amor-em-pixels.onrender.com/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: emailTo,
-          subject: emailSubject,
-          body: emailBody,
-        }),
-      });
+// Função para enviar e-mail
+const sendEmail = async () => {
+  try {
+    const response = await fetch('https://amor-em-pixels.onrender.com/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: emailTo,
+        subject: emailSubject,
+        body: emailBody,
+      }),
+    });
 
-      const data = await response.json();
-      if (response.ok) {
-        toast({ title: 'Sucesso', description: 'E-mail enviado com sucesso!', variant: 'default' });
-        setIsEmailDialogOpen(false);
-      } else {
-        toast({ title: 'Erro', description: data.error || 'Falha ao enviar o e-mail.', variant: 'destructive' });
-      }
-    } catch (error) {
-      console.error('Erro ao enviar e-mail:', error);
-      toast({ title: 'Erro', description: 'Falha ao enviar o e-mail.', variant: 'destructive' });
+    const data = await response.json();
+    if (response.ok) {
+      toast({ title: 'Sucesso', description: 'E-mail enviado com sucesso!', variant: 'default' });
+      setIsEmailDialogOpen(false);
+    } else {
+      toast({ title: 'Erro', description: data.error || 'Falha ao enviar o e-mail.', variant: 'destructive' });
     }
-  };
+  } catch (error) {
+    console.error('Erro ao enviar e-mail:', error);
+    toast({ title: 'Erro', description: 'Falha ao enviar o e-mail.', variant: 'destructive' });
+  }
+};
 
   return (
     <>
