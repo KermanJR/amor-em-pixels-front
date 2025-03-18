@@ -524,9 +524,7 @@ const Create = () => {
                       </Button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-gray-600">
-                        Senha para acesso: {siteData.formData.password} (Compartilhe esta senha com seu amor!)
-                      </p>
+                  
                       <Button
                         variant="ghost"
                         size="sm"
