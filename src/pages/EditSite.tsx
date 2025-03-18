@@ -22,6 +22,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import QRCode from 'react-qr-code';
 import jsPDF from 'jspdf';
+import { Music } from 'lucide-react'; // Adicionado para o botão do Spotify
 
 const PLANS = {
   free: { sites: 1, photos: 3, videos: 1, musics: 1, durationMonths: 3 },
@@ -38,6 +39,10 @@ const formSchema = z.object({
     message: 'Por favor, selecione a data de início do relacionamento',
   }),
   message: z.string().min(10, { message: 'Mensagem deve ter pelo menos 10 caracteres' }).max(500),
+  spotifyLink: z.string().url({ message: 'Insira um link válido do Spotify' }).optional().or(z.literal('')).refine(
+    (val) => !val || val.includes('spotify.com'),
+    { message: 'O link deve ser do Spotify' }
+  ),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -71,6 +76,7 @@ const EditSite = () => {
       specialDate: null,
       relationshipStartDate: null,
       message: '',
+      spotifyLink: '', // Valor padrão para o campo Spotify
     },
   });
 
@@ -99,6 +105,7 @@ const EditSite = () => {
       console.log('Site data from Supabase:', site);
       console.log('Special Date:', site.form_data.specialDate);
       console.log('Relationship Start Date:', site.form_data.relationshipStartDate);
+      console.log('Spotify Link:', site.form_data.spotifyLink); // Depuração do Spotify
 
       setSelectedPlan(site.plan);
       setCustomUrl(site.custom_url);
@@ -112,6 +119,7 @@ const EditSite = () => {
       const relationshipStartDate = site.form_data.relationshipStartDate
         ? new Date(site.form_data.relationshipStartDate)
         : null;
+      const spotifyLink = site.form_data.spotifyLink || ''; // Carrega o link do Spotify, se existir
 
       const isValidSpecialDate = specialDate && !isNaN(specialDate.getTime());
       const isValidRelationshipStartDate = relationshipStartDate && !isNaN(relationshipStartDate.getTime());
@@ -121,6 +129,7 @@ const EditSite = () => {
         specialDate: isValidSpecialDate ? specialDate : null,
         relationshipStartDate: isValidRelationshipStartDate ? relationshipStartDate : null,
         message: site.form_data.message || '',
+        spotifyLink: spotifyLink, // Preenche o campo Spotify
       });
     };
 
@@ -192,6 +201,7 @@ const EditSite = () => {
         photos: [...existingPhotos, ...photos.map(file => URL.createObjectURL(file))],
         videos: [...existingVideos, ...videos.map(file => URL.createObjectURL(file))],
         musics: [...existingMusics, ...musics.map(file => URL.createObjectURL(file))],
+        spotifyLink: values.spotifyLink || '', // Inclui o link do Spotify na preview
       },
     };
 
@@ -252,6 +262,7 @@ const EditSite = () => {
           ...siteData.formData,
           specialDate,
           relationshipStartDate,
+          spotifyLink: siteData.formData.spotifyLink || '', // Atualiza o link do Spotify
         },
         plan: selectedPlan,
         media: {
@@ -316,6 +327,11 @@ const EditSite = () => {
   };
 
   const planLimits = getPlanLimits();
+
+  // Função para abrir o Spotify (opcional, pode ser expandida)
+  const openSpotify = () => {
+    window.open('https://open.spotify.com/', '_blank');
+  };
 
   return (
     <>
@@ -404,6 +420,32 @@ const EditSite = () => {
               onRemoveExisting={(url) => handleRemoveMedia('videos', url)}
               freeTier={selectedPlan === 'free'}
             />
+            <FormField
+              control={form.control}
+              name="spotifyLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link do Spotify (Opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: https://open.spotify.com/track/..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>Insira ou selecione um link de uma música do Spotify.</FormDescription>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={openSpotify}
+                    className="mt-2"
+                  >
+                    <Music className="h-4 w-4 mr-2" />
+                    Abrir Spotify
+                  </Button>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <MediaUpload
               type="audio"
               maxFiles={planLimits.musics}
@@ -473,6 +515,12 @@ const EditSite = () => {
                     <QRCode id="qr-code" value={`${window.location.origin}/${customUrl || 'exemplo'}`} size={128} level="H" />
                   </div>
                 </div>
+                {siteData.formData.spotifyLink && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Link do Spotify</h3>
+                    <p className="text-sm text-gray-600 break-all">{siteData.formData.spotifyLink}</p>
+                  </div>
+                )}
               </div>
               <DialogFooter className="flex gap-2">
                 <Button variant="outline" onClick={() => setIsPreviewModalOpen(false)}>Voltar</Button>
