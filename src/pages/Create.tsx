@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Sparkles, Heart, Camera, Video, Music, Lock, Loader2 } from 'lucide-react';
+import { Calendar, Sparkles, Heart, Camera, Video, Music, Lock, Loader2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,8 +21,6 @@ import { supabase } from '../supabaseClient';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import QRCode from 'react-qr-code';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { loadStripe } from '@stripe/stripe-js';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
@@ -235,7 +233,6 @@ const Create = () => {
 
     setIsSubmitting(true);
     try {
-      // Adicionar um pequeno atraso para garantir que o feedback visual seja exibido
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
@@ -252,6 +249,14 @@ const Create = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({ title: 'Copiado!', description: `${label} copiado para a área de transferência.` });
+    }).catch(() => {
+      toast({ title: 'Erro', description: 'Falha ao copiar.', variant: 'destructive' });
+    });
   };
 
   const planLimits = getPlanLimits();
@@ -450,12 +455,27 @@ const Create = () => {
                   />
                 </div>
 
-                <p className="text-lg text-wine-800 font-medium mb-4">
-                  Quer um PDF personalizado do seu Card Digital?
-                </p>
-                <p className="text-gray-700 mb-4">
-                  Faça upgrade para o Premium e baixe seu PDF exclusivo com QR Code no Dashboard após o pagamento!
-                </p>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium text-gray-800">O que acontece agora?</h3>
+                  <p className="text-sm text-gray-600">
+                    Siga os passos abaixo para finalizar a criação do seu Card Digital:
+                  </p>
+                  <ol className="list-decimal pl-5 text-sm text-gray-700 space-y-2">
+                    <li>Confirme as informações do seu Card Digital abaixo.</li>
+                    <li>Defina a URL personalizada para o seu site.</li>
+                    <li>Clique em "Pagar e Criar" para realizar o pagamento.</li>
+                    <li>
+                      Após o pagamento, você receberá um e-mail com:
+                      <ul className="list-disc pl-5 mt-1">
+                        <li>O link de acesso ao seu Card Digital ({`${window.location.origin}/${customUrl || '[sua-url]'}`}).</li>
+                        <li>A senha para acessar o Card Digital.</li>
+                        {selectedPlan === 'premium' && (
+                          <li>Um PDF personalizado com QR Code para download (exclusivo do plano Premium).</li>
+                        )}
+                      </ul>
+                    </li>
+                  </ol>
+                </div>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -465,13 +485,35 @@ const Create = () => {
                       onChange={(e) => setCustomUrl(e.target.value.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim())}
                       placeholder="Ex: joaoemaria"
                     />
-                    <p className="text-sm text-gray-600">{`${window.location.origin}/${customUrl || '[sua-url]'}`}</p>
-                    <p className="text-sm text-gray-600">
-                      Senha para acesso: {siteData.formData.password} (Compartilhe esta senha com seu amor!)
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-600">{`${window.location.origin}/${customUrl || '[sua-url]'}`}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopy(`${window.location.origin}/${customUrl}`, 'URL do Card')}
+                        disabled={!customUrl}
+                        aria-label="Copiar URL do Card Digital"
+                        title="Copiar URL"
+                      >
+                        <Copy className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-600">
+                        Senha para acesso: {siteData.formData.password} (Compartilhe esta senha com seu amor!)
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopy(siteData.formData.password, 'Senha do Card')}
+                        aria-label="Copiar senha do Card Digital"
+                        title="Copiar senha"
+                      >
+                        <Copy className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    </div>
                   </div>
 
-                  {/* Resumo do Card Criado */}
                   <div className="space-y-2">
                     <h3 className="text-lg font-medium text-gray-800">Resumo do Seu Card:</h3>
                     <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
