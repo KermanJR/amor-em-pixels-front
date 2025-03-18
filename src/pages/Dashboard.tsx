@@ -63,10 +63,11 @@ const Dashboard = () => {
         .single();
       setUserPlan(planData || { package_type: 'basic', purchase_date: null });
 
+
       const { data, error } = await supabase
-        .from('sites')
-        .select('*')
-        .eq('user_id', user.id');
+  .from('sites')
+  .select('*')
+  .eq('user_id', user.id);
 
       if (error) {
         toast({ title: 'Erro', description: 'Falha ao carregar seus Cards Digitais', variant: 'destructive' });
