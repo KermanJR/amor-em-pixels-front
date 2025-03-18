@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm, UseFormWatch } from 'react-hook-form'; // Adicionando UseFormWatch
+import { useForm, UseFormWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Calendar, Sparkles, Heart, Camera, Video, Music, Lock, Loader2, Copy } from 'lucide-react';
@@ -17,7 +17,7 @@ import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MediaUpload from '@/components/MediaUpload';
 import SitePreview from '@/components/SitePreview';
-import MiniPreview from '@/components/MiniPreview'; // Importando o novo componente
+import MiniPreview from '@/components/MiniPreview';
 import { supabase } from '../supabaseClient';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
