@@ -17,7 +17,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden pt-24 pb-16 lg:pt-32 lg:pb-24 bg-gradient-to-br from-pink-50 via-purple-100 to-blue-50">
+    <section className="relative overflow-hidden pt-24 pb-16 lg:pt-32 lg:pb-24 bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
       {/* Elementos decorativos animados */}
       <div className="absolute inset-0 -z-10">
         <motion.div
@@ -45,25 +45,25 @@ const HeroSection = () => {
       </div>
 
       <div className="container px-4 mx-auto relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Conteúdo de Texto */}
           <motion.div
             className={cn(
-              "max-w-xl space-y-6 transition-all duration-1000",
+              "max-w-xl space-y-8 transition-all duration-1000",
               loaded ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
             )}
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
           >
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-md animate-pulse-slow">
-              <Heart className="h-4 w-4 mr-1 text-white" />
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-lg animate-pulse-slow">
+              <Heart className="h-5 w-5 mr-2 text-white" />
               <span className="text-sm font-semibold uppercase tracking-wide">Oferta Especial - R$ 29,90 Plano Básico</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight text-gray-900">
               Surpreenda seu amor com um{' '}
-              <span className="relative inline-block">
+              <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
                 Presente Digital Único
                 <svg
                   className="absolute -bottom-2 left-0 w-full h-2 -z-10"
@@ -82,10 +82,15 @@ const HeroSection = () => {
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-700 font-medium">
-              Crie um <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent font-bold hover:scale-105 transition-transform duration-300">Card Digital</span> personalizado em minutos com fotos, vídeos e músicas que vão emocionar seu amor para sempre!{' '}
+            <p className="text-xl md:text-2xl text-gray-700 font-medium">
+              Crie um{' '}
+              <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent font-bold hover:scale-105 transition-transform duration-300">
+                Card Digital
+              </span>{' '}
+              personalizado em minutos com fotos, vídeos e músicas que vão emocionar seu amor para sempre!{' '}
               <span className="text-pink-500 font-bold">Não perca essa chance!</span>
             </p>
+
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/criar">
                 <Button
@@ -119,7 +124,7 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
           >
-            <div className="relative z-10 bg-white p-4 rounded-xl shadow-2xl max-w-md mx-auto transform rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-500">
+            <div className="relative z-10 bg-white p-6 rounded-2xl shadow-2xl max-w-md mx-auto transform rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-500">
               <div className="aspect-[3/4] rounded-lg overflow-hidden border-4 border-pink-100">
                 <img
                   src="https://images.pexels.com/photos/3512506/pexels-photo-3512506.png?auto=compress&cs=tinysrgb&w=1200"
@@ -169,51 +174,5 @@ const HeroSection = () => {
     </section>
   );
 };
-
-// Animações customizadas
-const animateFloat = `
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-`;
-
-const animatePulseSlow = `
-  @keyframes pulse-slow {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-`;
-
-const animateTwinkle = `
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1; }
-  }
-`;
-
-const animateSpinSlow = `
-  @keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-`;
-
-const styles = `
-  ${animateFloat}
-  ${animatePulseSlow}
-  ${animateTwinkle}
-  ${animateSpinSlow}
-  .animate-float { animation: float 3s ease-in-out infinite; }
-  .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
-  .animate-twinkle { animation: twinkle 2.5s ease-in-out infinite; }
-  .animate-spin-slow { animation: spin-slow 6s linear infinite; }
-  .hover-lift:hover { transform: translateY(-5px); }
-  .text-gradient { background: linear-gradient(90deg, #ff69b4, #9370db); -webkit-background-clip: text; }
-`;
-
-const styleSheet = document.createElement('style');
-styleSheet.textContent = styles;
-document.head.appendChild(styleSheet);
 
 export default HeroSection;
