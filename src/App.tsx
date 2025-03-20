@@ -214,6 +214,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <CookieConsentBanner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -234,6 +235,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    
   </QueryClientProvider>
 );
 
