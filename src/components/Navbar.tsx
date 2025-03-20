@@ -119,7 +119,7 @@ const Navbar = () => {
                 className="bg-love-500 hover:bg-love-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
                 size="sm"
               >
-                Criar Site
+                Criar Card
               </Button>
             </Link>
           )}
@@ -219,7 +219,7 @@ const Navbar = () => {
                   className="w-full bg-love-500 hover:bg-love-600 text-white shadow-md mt-2"
                   size="sm"
                 >
-                  Criar Site
+                  Criar Card
                 </Button>
               </Link>
             )}
