@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useParams, useNavigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Precos from "./pages/Precos";
-import CookieConsentBanner from "./components/CookieConsentBanner";
+
 import Create from "./pages/Create";
 import Preview from "./pages/Preview";
 import NotFound from "./pages/NotFound";
@@ -214,7 +214,6 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <CookieConsentBanner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
