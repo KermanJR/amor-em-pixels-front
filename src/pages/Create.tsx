@@ -38,6 +38,7 @@ const formSchema = z.object({
     'O link deve ser do Spotify'
   ),
   password: z.string().min(4, 'A senha deve ter pelo menos 4 caracteres').max(20),
+  customUrl: z.string().min(3, 'A URL deve ter pelo menos 3 caracteres').max(50).regex(/^[a-z0-9]+$/, 'A URL deve conter apenas letras minúsculas e números, sem espaços ou caracteres especiais'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -60,7 +61,7 @@ const Create = () => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { coupleName: '', relationshipStartDate: null, message: '', spotifyLink: '', password: '' },
+    defaultValues: { coupleName: '', relationshipStartDate: null, message: '', spotifyLink: '', password: '', customUrl: '' },
   });
 
   useEffect(() => {
@@ -103,8 +104,8 @@ const Create = () => {
       form.trigger('message');
       return;
     }
-    if (activeStep === 3 && (!values.password || errors.password)) {
-      form.trigger('password');
+    if (activeStep === 3 && (!values.password || errors.password || !values.customUrl || errors.customUrl)) {
+      form.trigger(['password', 'customUrl']);
       return;
     }
     setActiveStep((prev) => prev + 1);
@@ -165,7 +166,7 @@ const Create = () => {
     if (!checkUserLimits()) return;
 
     setIsSubmitting(true);
-    const customUrl = values.coupleName.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim();
+    const customUrl = values.customUrl.toLowerCase().trim();
     try {
       const photoUrls = await Promise.all(
         photos.map(async (file, index) => {
@@ -210,7 +211,13 @@ const Create = () => {
       };
 
       const { data, error } = await supabase.from('sites').insert([finalSiteData]).select('id').single();
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          toast({ title: 'Erro', description: 'Esta URL já está em uso.', variant: 'destructive' });
+          return;
+        }
+        throw error;
+      }
 
       const stripe = await stripePromise;
       const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
@@ -356,6 +363,52 @@ const Create = () => {
       ),
     },
     {
+      label: 'Segurança e URL',
+      content: (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-800">Segurança e URL Personalizada</h2>
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">Senha de Acesso</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Crie uma senha (mín. 4 caracteres)"
+                    className="rounded-md border-gray-300 focus:ring-pink-400"
+                    {...field}
+                  />
+                </FormControl>
+                <p className="text-sm text-gray-500">Proteja seu card com uma senha única.</p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="customUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">URL Personalizada</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ex: joaoemaria"
+                    className="rounded-md border-gray-300 focus:ring-pink-400"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim())}
+                  />
+                </FormControl>
+                <p className="text-sm text-gray-500">A URL será: {`${window.location.origin}/${field.value || '[sua-url]'}`}</p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      ),
+    },
+    {
       label: 'Resumo',
       content: (
         <div className="space-y-6">
@@ -389,6 +442,10 @@ const Create = () => {
               <li className="flex items-center gap-2">
                 <Lock className="h-5 w-5 text-pink-500" />
                 <span><strong>Senha:</strong> {form.getValues('password') ? 'Definida' : 'Não definida'}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-pink-500" />
+                <span><strong>URL Personalizada:</strong> {`${window.location.origin}/${form.getValues('customUrl') || '[sua-url]'}`}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-pink-500" />
@@ -509,7 +566,7 @@ const Create = () => {
                   formData={previewData.formData}
                   plan={previewData.plan}
                   media={previewData.media}
-                  customUrl={previewData.formData.coupleName.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim()}
+                  customUrl={previewData.formData.customUrl || previewData.formData.coupleName.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim()}
                 />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
