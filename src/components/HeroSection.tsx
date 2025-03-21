@@ -49,7 +49,7 @@ const HeroSection = () => {
       spotifyLink: 'https://open.spotify.com/track/4uUG5tS1BAXw0qD37FGe1S',
     },
     customUrl: 'lara-e-pedro',
-    theme: 'dark',
+    theme: 'dark', // Garantindo que o tema seja 'dark'
   };
 
   return (
@@ -121,7 +121,7 @@ const HeroSection = () => {
               transition={{ duration: 0.3 }}
             >
               <Heart className="h-5 w-5 mr-2 animate-pulse" />
-              <span className="text-sm font-semibold uppercase tracking-widest">Plano Básico - R$ 29,90</span>
+              <span className="text-sm font-semibold uppercase tracking-widest">Exclusivo - R$ 59,90</span>
             </motion.div>
 
             {/* Título */}
@@ -167,7 +167,7 @@ const HeroSection = () => {
                   size="lg"
                   className="w-full sm:w-80 h-16 text-xl bg-gradient-to-r from-pink-600 to-purple-800 hover:from-pink-700 hover:to-purple-900 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  Criar Meu Card Digital
+                  Criar Minha Obra-Prima
                   <ArrowRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-2" />
                 </Button>
               </Link>
@@ -332,6 +332,16 @@ const HeroSection = () => {
           left: 0;
           width: 100%;
           height: 100%;
+        }
+        /* Forçar o tema escuro no segundo mockup */
+        .dark-theme {
+          background: linear-gradient(to bottom, #2D1B2A, #4B2E39) !important;
+        }
+        .dark-theme * {
+          color: #e5e7eb !important; /* Cor do texto para tema escuro */
+        }
+        .dark-theme .bg-white {
+          background-color: #3A2333 !important; /* Ajuste do fundo do card no tema escuro */
         }
       `}</style>
     </section>
