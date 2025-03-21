@@ -131,7 +131,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         transition={{ duration: 0.8, delay: 0.8 }}
         className="mb-12 p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-lg mx-auto w-full"
       >
-        <h2 className="text-xl text-gray-800 font-semibold mb-4" style={{ fontFamily: "'Raleway', sans-serif" }}>
+        <h2 className="text-xl text-gray-800 font-semibold mb-4" style={{fontFamily: "'Playfair Display', serif"  }}>
           Tempo Juntos
         </h2>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
@@ -178,7 +178,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
           transition={{ duration: 0.8, delay: 1.2 }}
           className="mb-16 w-full max-w-3xl"
         >
-          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Raleway', sans-serif" }}>
+          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Playfair Display', serif"  }}>
             Nossas Memórias
           </h2>
           <Slider {...sliderSettings} key={photos.length}>
@@ -204,7 +204,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
           transition={{ duration: 0.8, delay: 1.4 }}
           className="mb-16 w-full max-w-md"
         >
-          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Raleway', sans-serif" }}>
+          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Playfair Display', serif"  }}>
             Nossa Música
           </h2>
           <iframe
