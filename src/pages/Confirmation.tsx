@@ -38,31 +38,8 @@ const Confirmation = () => {
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-purple-50 to-blue-50 relative overflow-hidden">
       <Navbar />
       {/* Aumentar o padding-top para dar mais espaço abaixo da navbar */}
-      <main className="container mx-auto pt-24 pb-16 px-4 lg:px-8 flex flex-col items-center justify-center relative z-10">
-        {/* Partículas Animadas */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(30)].map((_, idx) => (
-            <motion.div
-              key={idx}
-              className="absolute w-2 h-2 bg-gradient-to-r from-pink-300 to-purple-400 rounded-full"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.5 + 0.2,
-              }}
-              animate={{
-                y: [0, -20, 0],
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{
-                duration: Math.random() * 5 + 5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
+      <main className="container mx-auto pt-30 pb-16 px-4 lg:px-8 flex flex-col items-center justify-center relative z-10">
+        
 
         {/* Linhas Decorativas Sutil */}
         <div className="absolute inset-0 pointer-events-none">
