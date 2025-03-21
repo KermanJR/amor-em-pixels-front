@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut } from 'lucide-react';
@@ -52,62 +53,41 @@ const Navbar = () => {
   };
 
   return (
-    <header
+    <header 
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-2 md:py-4',
-        isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-4",
+        isScrolled ? "bg-white/90 backdrop-blur-md shadow-sm" : "bg-transparent"
       )}
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <img
-            src="public\Fashion-removebg-preview (2).png" // Substitua pelo caminho da sua logo
-            alt="Logo"
-            style={{width: '100px', height:'100px',transform: 'scale(1.5)'}}
-            className="h-10 md:h-10 w-auto object-cover"
-          />
+      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+        <Link to="/" className="flex items-center space-x-2 text-2xl font-display font-semibold">
+          <span className={cn("transition-colors duration-300", isScrolled ? "text-love-600" : "text-love-500")}>
+            Amor em Pixels
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link
-            to="/"
-            className={cn(
-              'text-sm font-medium hover:text-love-500 transition-colors duration-200',
-              location.pathname === '/' ? 'text-love-500' : 'text-foreground/90'
-            )}
-          >
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/" className={cn("text-sm font-medium hover:text-love-500 transition-colors duration-200", location.pathname === "/" ? "text-love-500" : "text-foreground/90")}>
             Início
           </Link>
-          <Link
-            to="/como-funciona"
-            className={cn(
-              'text-sm font-medium hover:text-love-500 transition-colors duration-200',
-              location.pathname === '/como-funciona' ? 'text-love-500' : 'text-foreground/90'
-            )}
-          >
-            Como Funciona
-          </Link>
-
+         
+         
           
+
             <Link to="/criar">
-              <Button
-                variant="default"
-                className="bg-love-500 hover:bg-love-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                size="sm"
-              >
-                Criar Card
+              <Button variant="default" className="bg-love-500 hover:bg-love-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
+                Criar Site
               </Button>
             </Link>
           
         </nav>
 
         {/* Mobile Menu Button */}
-        <button
+        <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-foreground p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-love-500"
-          aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+          className="md:hidden text-foreground p-2"
+          aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -115,43 +95,15 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-white/95 backdrop-blur-md transition-opacity duration-300 ease-in-out">
-          <div className="container mx-auto px-4 py-6 flex flex-col space-y-4">
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="self-end text-foreground p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-love-500"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <Link
-              to="/"
-              className={cn(
-                'text-lg font-medium py-2 border-b border-gray-200',
-                location.pathname === '/' ? 'text-love-500' : 'text-foreground'
-              )}
-              onClick={() => setMobileMenuOpen(false)}
-            >
+        <div className="md:hidden fixed inset-0 z-40 bg-white pt-20">
+          <div className="container mx-auto px-4 py-4 flex flex-col space-y-6">
+            <Link to="/" className={cn("text-lg font-medium py-2 border-b border-gray-100", location.pathname === "/" ? "text-love-500" : "text-foreground")} onClick={() => setMobileMenuOpen(false)}>
               Início
             </Link>
-            <Link
-              to="/como-funciona"
-              className={cn(
-                'text-lg font-medium py-2 border-b border-gray-200',
-                location.pathname === '/como-funciona' ? 'text-love-500' : 'text-foreground'
-              )}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Como Funciona
-            </Link>
-          
            
               <Link to="/criar" onClick={() => setMobileMenuOpen(false)}>
-                <Button
-                  variant="default"
-                  className="w-full bg-love-500 hover:bg-love-600 text-white shadow-md mt-2"
-                  size="sm"
-                >
-                  Criar Card
+                <Button variant="default" className="w-full bg-love-500 hover:bg-love-600 text-white shadow-md">
+                  Criar Site
                 </Button>
               </Link>
             
