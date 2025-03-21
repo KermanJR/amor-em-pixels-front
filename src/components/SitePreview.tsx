@@ -131,7 +131,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         transition={{ duration: 0.8, delay: 0.8 }}
         className="mb-12 p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-lg mx-auto w-full"
       >
-        <h2 className="text-xl text-gray-800 font-semibold mb-4" style={{fontFamily: "'Playfair Display', serif"  }}>
+        <h2 className="text-xl text-gray-800 font-semibold mb-4" style={{fontFamily: "'Playfair Display', serif", textAlign: "center"  }}>
           Tempo Juntos
         </h2>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
