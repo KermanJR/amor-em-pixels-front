@@ -77,7 +77,7 @@ const Navbar = () => {
 
             <Link to="/criar">
               <Button variant="default" className="bg-love-500 hover:bg-love-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
-                Criar Site
+                Criar Card
               </Button>
             </Link>
           
