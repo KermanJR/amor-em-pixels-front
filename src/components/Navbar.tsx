@@ -62,9 +62,10 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
           <img
-            src="../../../public/Fashion-removebg-preview (2).png" // Substitua pelo caminho da sua logo
+            src="public\Fashion-removebg-preview (2).png" // Substitua pelo caminho da sua logo
             alt="Logo"
-            className="h-8 md:h-10 w-auto object-contain"
+            style={{width: '100px', height:'100px',transform: 'scale(1.5)'}}
+            className="h-10 md:h-10 w-auto object-cover"
           />
         </Link>
 
@@ -89,31 +90,7 @@ const Navbar = () => {
             Como Funciona
           </Link>
 
-          {user ? (
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/dashboard"
-                className={cn(
-                  'text-sm font-medium hover:text-love-500 transition-colors duration-200',
-                  location.pathname === '/dashboard' ? 'text-love-500' : 'text-foreground/90'
-                )}
-              >
-                Dashboard
-              </Link>
-              <span className="text-sm text-foreground/90 hidden md:inline">
-                Bem-vindo, {user.email.split('@')[0]}!
-              </span>
-              <Button
-                variant="outline"
-                className="text-love-600 hover:bg-love-50"
-                onClick={handleLogout}
-                size="sm"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
-            </div>
-          ) : (
+          
             <Link to="/criar">
               <Button
                 variant="default"
@@ -123,7 +100,7 @@ const Navbar = () => {
                 Criar Card
               </Button>
             </Link>
-          )}
+          
         </nav>
 
         {/* Mobile Menu Button */}
@@ -166,54 +143,8 @@ const Navbar = () => {
             >
               Como Funciona
             </Link>
-            <Link
-              to="/exemplos"
-              className={cn(
-                'text-lg font-medium py-2 border-b border-gray-200',
-                location.pathname === '/exemplos' ? 'text-love-500' : 'text-foreground'
-              )}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Exemplos
-            </Link>
-            <Link
-              to="/precos"
-              className={cn(
-                'text-lg font-medium py-2 border-b border-gray-200',
-                location.pathname === '/precos' ? 'text-love-500' : 'text-foreground'
-              )}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Preços
-            </Link>
-            {user && (
-              <Link
-                to="/dashboard"
-                className={cn(
-                  'text-lg font-medium py-2 border-b border-gray-200',
-                  location.pathname === '/dashboard' ? 'text-love-500' : 'text-foreground'
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-            )}
-            {user ? (
-              <>
-                <div className="text-lg font-medium py-2 border-b border-gray-200 text-foreground">
-                  Bem-vindo, {user.email.split('@')[0]}!
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full text-love-600 hover:bg-love-50 mt-2"
-                  onClick={handleLogout}
-                  size="sm"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
-                </Button>
-              </>
-            ) : (
+          
+           
               <Link to="/criar" onClick={() => setMobileMenuOpen(false)}>
                 <Button
                   variant="default"
@@ -223,7 +154,7 @@ const Navbar = () => {
                   Criar Card
                 </Button>
               </Link>
-            )}
+            
           </div>
         </div>
       )}
