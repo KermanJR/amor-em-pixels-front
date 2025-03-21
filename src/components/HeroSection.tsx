@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Heart, ArrowRight, Star } from 'lucide-react';
+import { Heart, ArrowRight, Star, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const HeroSection = () => {
@@ -14,46 +14,84 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden pt-28 pb-20 lg:pt-36 lg:pb-28 bg-gradient-to-br from-white via-pink-50 to-purple-50">
-      {/* Elementos decorativos sutis e premium */}
-      <div className="absolute inset-0 -z-10">
-        <motion.div
-          className="absolute top-20 left-16 w-56 h-56 bg-gradient-to-r from-pink-100 to-purple-200 rounded-full mix-blend-overlay filter blur-3xl opacity-40"
-          animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.5, 0.4] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-16 w-64 h-64 bg-gradient-to-r from-purple-100 to-blue-200 rounded-full mix-blend-overlay filter blur-3xl opacity-30"
-          animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.4, 0.3] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        />
+    <section className="relative overflow-hidden pt-32 pb-24 lg:pt-40 lg:pb-32">
+      {/* Background com efeitos visuais */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+        {/* Camada de partículas animadas */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            className="absolute top-10 left-1/4 w-72 h-72 bg-gradient-to-r from-pink-200 to-purple-300 rounded-full mix-blend-overlay filter blur-3xl opacity-30"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], x: [0, 20, 0], y: [0, -30, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute bottom-20 right-1/3 w-96 h-96 bg-gradient-to-r from-purple-200 to-blue-300 rounded-full mix-blend-overlay filter blur-3xl opacity-20"
+            animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2], x: [0, -25, 0], y: [0, 40, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          />
+          <motion.div
+            className="absolute top-1/3 left-10 w-48 h-48 bg-gradient-to-r from-yellow-100 to-pink-200 rounded-full mix-blend-overlay filter blur-2xl opacity-25"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.25, 0.35, 0.25], rotate: [0, 10, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          />
+        </div>
+
+        {/* Linhas sutis de decoração */}
+        <svg className="absolute inset-0 w-full h-full opacity-10" fill="none">
+          <defs>
+            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style={{ stopColor: '#ec4899' }} />
+              <stop offset="100%" style={{ stopColor: '#8b5cf6' }} />
+            </linearGradient>
+          </defs>
+          <path
+            d="M-100,0 Q200,300 500,200 T1000,400"
+            stroke="url(#lineGradient)"
+            strokeWidth="2"
+            className="animate-draw"
+          />
+          <path
+            d="M1200,800 Q900,500 600,600 T0,400"
+            stroke="url(#lineGradient)"
+            strokeWidth="2"
+            className="animate-draw-reverse"
+          />
+        </svg>
+
+        {/* Partículas brilhantes */}
+        <Sparkles className="absolute top-10 right-20 h-8 w-8 text-yellow-300 animate-twinkle opacity-50" />
+        <Sparkles className="absolute bottom-16 left-1/4 h-6 w-6 text-pink-400 animate-twinkle opacity-40" />
       </div>
 
       <div className="container px-6 mx-auto relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Conteúdo de Texto */}
           <motion.div
             className={cn(
-              'max-w-lg space-y-8',
-              loaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+              'max-w-xl space-y-8',
+              loaded ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
             )}
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            transition={{ duration: 1, ease: 'easeOut' }}
           >
             {/* Badge Premium */}
-            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md">
+            <motion.div
+              className="inline-flex items-center px-5 py-2 rounded-full bg-gradient-to-r from-pink-600 to-purple-700 text-white shadow-lg"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+            >
               <Heart className="h-5 w-5 mr-2 animate-pulse" />
-              <span className="text-sm font-semibold uppercase tracking-wider">Plano Premium - R$ 49,90</span>
-            </div>
+              <span className="text-sm font-semibold uppercase tracking-widest">Exclusivo - R$ 59,90</span>
+            </motion.div>
 
             {/* Título */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight text-gray-900">
-              Crie um{' '}
-              <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-700">
-                Presente Digital Inesquecível
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight text-gray-900">
+              Encante com um{' '}
+              <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-800">
+                Presente Digital Memorável
                 <svg
-                  className="absolute -bottom-2 left-0 w-full h-3"
+                  className="absolute -bottom-3 left-0 w-full h-4"
                   viewBox="0 0 200 12"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -61,8 +99,9 @@ const HeroSection = () => {
                   <path
                     d="M0 6C50 -2 150 -2 200 10"
                     stroke="url(#gradient)"
-                    strokeWidth="4"
+                    strokeWidth="5"
                     strokeLinecap="round"
+                    className="animate-draw"
                   />
                   <defs>
                     <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -75,64 +114,77 @@ const HeroSection = () => {
             </h1>
 
             {/* Subtítulo */}
-            <p className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed">
-              Transforme suas memórias em um{' '}
-              <span className="font-semibold text-pink-600">Card Digital Exclusivo</span> com fotos, vídeos e
-              músicas. Em minutos, surpreenda quem você ama com um toque de elegância e emoção.
+            <p className="text-lg md:text-xl text-gray-700 font-medium leading-relaxed">
+              Crie um{' '}
+              <span className="font-semibold text-pink-600">Card Digital Único</span> com fotos, vídeos e músicas
+              que capturam seus momentos mais especiais. Em poucos passos, entregue uma experiência emocionante e
+              sofisticada.
             </p>
 
             {/* Call-to-Action */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-6">
               <Link to="/criar">
                 <Button
                   size="lg"
-                  className="w-full sm:w-72 h-14 text-lg bg-gradient-to-r from-pink-600 to-purple-700 hover:from-pink-700 hover:to-purple-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="w-full sm:w-80 h-16 text-xl bg-gradient-to-r from-pink-600 to-purple-800 hover:from-pink-700 hover:to-purple-900 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  Criar Agora
-                  <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  Criar Minha Obra-Prima
+                  <ArrowRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-2" />
                 </Button>
               </Link>
             </div>
 
-            {/* Benefícios */}
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500 font-medium">
+            {/* Benefícios com ícones */}
+            <div className="flex flex-wrap gap-6 text-sm text-gray-600 font-medium">
               <div className="flex items-center">
-                <Star className="h-4 w-4 text-yellow-400 mr-1 animate-twinkle" />
-                <span>Feito em minutos</span>
+                <Star className="h-5 w-5 text-yellow-400 mr-2 animate-twinkle" />
+                <span>Rápido e Fácil</span>
               </div>
-              <span className="text-gray-300">•</span>
-              <span>Garantia de satisfação</span>
-              <span className="text-gray-300">•</span>
-              <span>Suporte 24/7</span>
+              <div className="flex items-center">
+                <Heart className="h-5 w-5 text-pink-500 mr-2 animate-pulse" />
+                <span>100% Personalizado</span>
+              </div>
+              <div className="flex items-center">
+                <Sparkles className="h-5 w-5 text-purple-500 mr-2 animate-twinkle" />
+                <span>Qualidade Premium</span>
+              </div>
             </div>
           </motion.div>
 
-          {/* Imagem Principal */}
+          {/* Composição Visual */}
           <motion.div
             className={cn(
               'relative',
-              loaded ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+              loaded ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
             )}
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+            transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
           >
-            <div className="relative z-10 bg-white p-6 rounded-2xl shadow-2xl max-w-md mx-auto transform hover:scale-105 transition-all duration-500">
-              <div className="aspect-[3/4] rounded-xl overflow-hidden border border-gray-100">
+            {/* Card Principal */}
+            <div className="relative z-10 bg-white p-6 rounded-3xl shadow-2xl max-w-md mx-auto transform hover:scale-105 transition-all duration-500">
+              <div className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-purple-100">
                 <img
                   src="https://images.pexels.com/photos/3512506/pexels-photo-3512506.png?auto=compress&cs=tinysrgb&w=1200"
                   alt="Casal celebrando amor"
                   className="object-cover w-full h-full transition-transform duration-700 hover:scale-110"
                 />
               </div>
+              {/* Selo de qualidade */}
+              <motion.div
+                className="absolute -top-4 -right-4 bg-gradient-to-r from-yellow-400 to-pink-500 text-white p-3 rounded-full shadow-lg"
+                whileHover={{ scale: 1.1 }}
+              >
+                <Star className="h-6 w-6 animate-twinkle" />
+              </motion.div>
             </div>
 
-            {/* Detalhes flutuantes */}
+            {/* Elementos Flutuantes */}
             <motion.div
-              className="absolute top-0 -left-12 bg-white p-3 rounded-xl shadow-lg transform -rotate-6 hover:rotate-0 transition-all duration-500"
+              className="absolute top-0 -left-16 bg-white p-4 rounded-xl shadow-lg transform -rotate-12 hover:rotate-0 transition-all duration-500"
               whileHover={{ scale: 1.1, rotate: 0 }}
             >
-              <div className="w-28 aspect-video rounded-lg overflow-hidden">
+              <div className="w-32 aspect-video rounded-lg overflow-hidden border border-gray-100">
                 <img
                   src="https://images.pexels.com/photos/1288245/pexels-photo-1288245.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
                   alt="Momento especial"
@@ -142,14 +194,17 @@ const HeroSection = () => {
             </motion.div>
 
             <motion.div
-              className="absolute -bottom-8 right-0 bg-gradient-to-r from-pink-500 to-purple-600 text-white p-4 rounded-xl shadow-lg transform rotate-6 hover:rotate-0 transition-all duration-500"
+              className="absolute -bottom-12 right-8 bg-gradient-to-r from-pink-600 to-purple-800 text-white p-4 rounded-xl shadow-lg transform rotate-8 hover:rotate-0 transition-all duration-500"
               whileHover={{ scale: 1.1, rotate: 0 }}
             >
-              <div className="flex items-center space-x-2">
-                <Heart className="h-5 w-5 animate-pulse" />
-                <span className="text-base font-semibold">Feito com amor</span>
+              <div className="flex items-center space-x-3">
+                <Heart className="h-6 w-6 animate-pulse" />
+                <span className="text-lg font-semibold">Amor Eterno</span>
               </div>
             </motion.div>
+
+            {/* Detalhe de fundo */}
+            <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-gradient-to-tr from-pink-200 to-purple-300 rounded-full filter blur-3xl opacity-20" />
           </motion.div>
         </div>
       </div>
@@ -157,18 +212,36 @@ const HeroSection = () => {
       {/* Estilos CSS */}
       <style jsx>{`
         @keyframes twinkle {
-          0%, 100% { opacity: 0.4; }
+          0%, 100% { opacity: 0.5; }
           50% { opacity: 1; }
         }
         @keyframes pulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.05); }
         }
+        @keyframes draw {
+          0% { stroke-dashoffset: 2000; }
+          100% { stroke-dashoffset: 0; }
+        }
+        @keyframes draw-reverse {
+          0% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: 2000; }
+        }
         .animate-twinkle {
           animation: twinkle 2s ease-in-out infinite;
         }
         .animate-pulse {
           animation: pulse 1.5s ease-in-out infinite;
+        }
+        .animate-draw {
+          stroke-dasharray: 2000;
+          stroke-dashoffset: 2000;
+          animation: draw 10s linear infinite;
+        }
+        .animate-draw-reverse {
+          stroke-dasharray: 2000;
+          stroke-dashoffset: 0;
+          animation: draw-reverse 10s linear infinite;
         }
       `}</style>
     </section>
