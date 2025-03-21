@@ -2,14 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Heart, Loader2, Sparkles, Camera, Music, Lock } from 'lucide-react';
+import { Calendar, Heart, Loader2, Sparkles, Camera, Music, Lock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format, addMonths } from 'date-fns';
@@ -30,6 +30,7 @@ const PLANS = {
   premium: { photos: 8, musics: 1, durationMonths: 12, price: 'R$49,90' },
 };
 
+// Atualizar o schema para incluir o campo de e-mail
 const formSchema = z.object({
   coupleName: z.string().min(3, 'Nome do casal deve ter pelo menos 3 caracteres').max(50),
   relationshipStartDate: z.date({ required_error: 'Selecione a data de início' }),
@@ -41,6 +42,7 @@ const formSchema = z.object({
   password: z.string().min(4, 'A senha deve ter pelo menos 4 caracteres').max(20),
   customUrl: z.string().min(3, 'A URL deve ter pelo menos 3 caracteres').max(50).regex(/^[a-z0-9]+$/, 'A URL deve conter apenas letras minúsculas e números, sem espaços ou caracteres especiais'),
   template: z.enum(['light', 'dark']),
+  email: z.string().email('Insira um e-mail válido').min(1, 'O e-mail é obrigatório'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -52,12 +54,6 @@ const Create = () => {
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCheckoutPopup, setShowCheckoutPopup] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -70,24 +66,11 @@ const Create = () => {
       password: '',
       customUrl: '',
       template: 'light',
+      email: '',
     },
   });
 
-  const watchedValues = form.watch(['coupleName', 'relationshipStartDate', 'message', 'spotifyLink', 'password', 'customUrl', 'template']);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => authListener.subscription.unsubscribe();
-  }, []);
+  const watchedValues = form.watch(['coupleName', 'relationshipStartDate', 'message', 'spotifyLink', 'password', 'customUrl', 'template', 'email']);
 
   const previewData = useMemo(() => {
     const values = form.getValues();
@@ -111,7 +94,6 @@ const Create = () => {
   }, [previewData.media.photos, previewData.media.musics]);
 
   const handleNext = async () => {
-    const errors = form.formState.errors;
     const values = form.getValues();
     if (activeStep === 0 && !selectedPlan) {
       toast({ title: 'Erro', description: 'Selecione um plano.', variant: 'destructive' });
@@ -139,6 +121,12 @@ const Create = () => {
         return;
       }
     }
+    if (activeStep === 5) {
+      const isValid = await form.trigger('email');
+      if (!isValid || !values.email) {
+        return;
+      }
+    }
     setActiveStep((prev) => prev + 1);
   };
 
@@ -159,36 +147,7 @@ const Create = () => {
     return true;
   };
 
-  const handleLogin = async () => {
-    setAuthLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      setIsAuthDialogOpen(false);
-      toast({ title: 'Sucesso', description: 'Login realizado com sucesso!' });
-    } catch (error) {
-      toast({ title: 'Erro', description: 'Falha no login.', variant: 'destructive' });
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  const handleSignUp = async () => {
-    setAuthLoading(true);
-    try {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
-      toast({ title: 'Sucesso', description: 'Cadastro realizado! Verifique seu e-mail.' });
-      setIsLogin(true);
-    } catch (error) {
-      toast({ title: 'Erro', description: 'Falha no cadastro.', variant: 'destructive' });
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const onSubmit = async (values: FormValues) => {
-    // Validação final antes de prosseguir
     const isValid = await form.trigger();
     if (!isValid) {
       toast({
@@ -199,12 +158,6 @@ const Create = () => {
       return;
     }
 
-    if (!user) {
-      setIsAuthDialogOpen(true);
-      toast({ title: 'Aviso', description: 'Faça login para continuar.', variant: 'destructive' });
-      return;
-    }
-
     if (!checkUserLimits()) return;
 
     setIsSubmitting(true);
@@ -212,7 +165,6 @@ const Create = () => {
 
     const customUrl = values.customUrl.toLowerCase().trim();
     try {
-      // Upload de fotos
       const photoUrls = await Promise.all(
         photos.map(async (file, index) => {
           const { data, error } = await supabase.storage
@@ -223,7 +175,6 @@ const Create = () => {
         })
       );
 
-      // Upload de músicas
       const musicUrls = await Promise.all(
         musics.map(async (file, index) => {
           const { data, error } = await supabase.storage
@@ -234,11 +185,10 @@ const Create = () => {
         })
       );
 
-      // Preparar dados do site
       const expirationDate = addMonths(new Date(), PLANS[selectedPlan].durationMonths);
       const finalSiteData = {
         custom_url: customUrl,
-        user_id: user.id,
+        user_id: null, // Não há usuário logado
         form_data: {
           ...values,
           relationshipStartDate: values.relationshipStartDate.toISOString(),
@@ -250,9 +200,9 @@ const Create = () => {
         status: 'pending',
         template_type: values.template,
         password: values.password,
+        email: values.email, // Adicionar o e-mail ao registro
       };
 
-      // Inserir dados no Supabase
       const { data, error } = await supabase.from('sites').insert([finalSiteData]).select('id').single();
       if (error) {
         if (error.code === '23505') {
@@ -262,7 +212,6 @@ const Create = () => {
         throw new Error(`Erro ao inserir no Supabase: ${error.message}`);
       }
 
-      // Criar sessão de checkout no Stripe
       const stripe = await stripePromise;
       if (!stripe) {
         throw new Error('Stripe não foi inicializado corretamente.');
@@ -271,7 +220,7 @@ const Create = () => {
       const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId: data.id }),
+        body: JSON.stringify({ userId: null, customUrl, plan: selectedPlan, siteId: data.id, email: values.email }),
       });
 
       if (!response.ok) {
@@ -283,7 +232,6 @@ const Create = () => {
         throw new Error('Nenhum sessionId retornado pelo backend.');
       }
 
-      // Redirecionar para o checkout
       const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
       if (stripeError) {
         throw new Error(`Erro ao redirecionar para o checkout: ${stripeError.message}`);
@@ -549,6 +497,28 @@ const Create = () => {
               </li>
             </ul>
           </div>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">E-mail para Receber o Link</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      type="email"
+                      placeholder="Digite seu e-mail"
+                      className="pl-10 rounded-md border-gray-300 focus:ring-pink-400"
+                      {...field}
+                    />
+                  </div>
+                </FormControl>
+                <p className="text-sm text-gray-500">Enviaremos o link do seu card digital para este e-mail.</p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <p className="text-sm text-gray-500">Confira os detalhes acima antes de finalizar!</p>
         </div>
       ),
@@ -568,7 +538,6 @@ const Create = () => {
           Crie seu Card Digital
         </motion.h1>
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Formulário */}
           <motion.div
             className="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100"
             initial={{ opacity: 0, y: 50 }}
@@ -577,7 +546,6 @@ const Create = () => {
           >
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {/* Stepper */}
                 <div className="flex justify-between mb-8">
                   {steps.map((step, index) => (
                     <motion.div
@@ -603,7 +571,6 @@ const Create = () => {
                   ))}
                 </div>
 
-                {/* Conteúdo do Passo */}
                 <motion.div
                   key={activeStep}
                   initial={{ opacity: 0, x: -30 }}
@@ -614,7 +581,6 @@ const Create = () => {
                   {steps[activeStep].content}
                 </motion.div>
 
-                {/* Navegação */}
                 <div className="flex gap-4 mt-8">
                   {activeStep > 0 && (
                     <Button
@@ -657,7 +623,6 @@ const Create = () => {
             </Form>
           </motion.div>
 
-          {/* Pré-visualização */}
           <motion.div
             className="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100 lg:sticky lg:top-20"
             initial={{ opacity: 0, y: 50 }}
@@ -694,38 +659,6 @@ const Create = () => {
       </main>
       <Footer />
 
-      {/* Modal de Autenticação */}
-      <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{isLogin ? 'Faça Login' : 'Cadastre-se'}</DialogTitle>
-            <DialogDescription>{isLogin ? 'Entre para criar seu Card Digital.' : 'Crie uma conta para começar.'}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
-          <DialogFooter className="flex flex-col gap-2">
-            <Button onClick={isLogin ? handleLogin : handleSignUp} disabled={authLoading} className="w-full bg-pink-600 hover:bg-pink-700">
-              {authLoading ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Processando...
-                </span>
-              ) : isLogin ? (
-                'Entrar'
-              ) : (
-                'Cadastrar'
-              )}
-            </Button>
-            <Button variant="link" onClick={() => setIsLogin(!isLogin)} disabled={authLoading}>
-              {isLogin ? 'Ainda não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Pop-up de Redirecionamento para Checkout */}
       <Dialog open={showCheckoutPopup} onOpenChange={setShowCheckoutPopup}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -740,7 +673,6 @@ const Create = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Estilos */}
       <style jsx>{`
         @keyframes twinkle {
           0%, 100% { opacity: 0.5; }
