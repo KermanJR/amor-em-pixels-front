@@ -51,7 +51,7 @@ const Create = () => {
   const [musics, setMusics] = useState<File[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showCheckoutPopup, setShowCheckoutPopup] = useState(false); // Novo estado para o pop-up
+  const [showCheckoutPopup, setShowCheckoutPopup] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
@@ -110,7 +110,7 @@ const Create = () => {
     };
   }, [previewData.media.photos, previewData.media.musics]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const errors = form.formState.errors;
     const values = form.getValues();
     if (activeStep === 0 && !selectedPlan) {
@@ -121,17 +121,23 @@ const Create = () => {
       toast({ title: 'Erro', description: 'Selecione um template.', variant: 'destructive' });
       return;
     }
-    if (activeStep === 2 && (!values.coupleName || !values.relationshipStartDate || errors.coupleName || errors.relationshipStartDate)) {
-      form.trigger(['coupleName', 'relationshipStartDate']);
-      return;
+    if (activeStep === 2) {
+      const isValid = await form.trigger(['coupleName', 'relationshipStartDate']);
+      if (!isValid || !values.coupleName || !values.relationshipStartDate) {
+        return;
+      }
     }
-    if (activeStep === 3 && (!values.message || errors.message)) {
-      form.trigger('message');
-      return;
+    if (activeStep === 3) {
+      const isValid = await form.trigger('message');
+      if (!isValid || !values.message) {
+        return;
+      }
     }
-    if (activeStep === 4 && (!values.password || errors.password || !values.customUrl || errors.customUrl)) {
-      form.trigger(['password', 'customUrl']);
-      return;
+    if (activeStep === 4) {
+      const isValid = await form.trigger(['password', 'customUrl']);
+      if (!isValid || !values.password || !values.customUrl) {
+        return;
+      }
     }
     setActiveStep((prev) => prev + 1);
   };
@@ -182,37 +188,53 @@ const Create = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
+    // Validação final antes de prosseguir
+    const isValid = await form.trigger();
+    if (!isValid) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, corrija os erros no formulário antes de prosseguir.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!user) {
       setIsAuthDialogOpen(true);
       toast({ title: 'Aviso', description: 'Faça login para continuar.', variant: 'destructive' });
       return;
     }
+
     if (!checkUserLimits()) return;
 
     setIsSubmitting(true);
-    setShowCheckoutPopup(true); // Mostrar o pop-up ao iniciar o processamento
+    setShowCheckoutPopup(true);
 
     const customUrl = values.customUrl.toLowerCase().trim();
     try {
+      // Upload de fotos
       const photoUrls = await Promise.all(
         photos.map(async (file, index) => {
           const { data, error } = await supabase.storage
             .from('media')
             .upload(`${customUrl}/photos/photo-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
-          if (error) throw error;
+          if (error) throw new Error(`Erro ao fazer upload da foto ${index}: ${error.message}`);
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
       );
+
+      // Upload de músicas
       const musicUrls = await Promise.all(
         musics.map(async (file, index) => {
           const { data, error } = await supabase.storage
             .from('media')
             .upload(`${customUrl}/musics/music-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
-          if (error) throw error;
+          if (error) throw new Error(`Erro ao fazer upload da música ${index}: ${error.message}`);
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
       );
 
+      // Preparar dados do site
       const expirationDate = addMonths(new Date(), PLANS[selectedPlan].durationMonths);
       const finalSiteData = {
         custom_url: customUrl,
@@ -230,26 +252,50 @@ const Create = () => {
         password: values.password,
       };
 
+      // Inserir dados no Supabase
       const { data, error } = await supabase.from('sites').insert([finalSiteData]).select('id').single();
       if (error) {
         if (error.code === '23505') {
           toast({ title: 'Erro', description: 'Esta URL já está em uso.', variant: 'destructive' });
           return;
         }
-        throw error;
+        throw new Error(`Erro ao inserir no Supabase: ${error.message}`);
       }
 
+      // Criar sessão de checkout no Stripe
       const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe não foi inicializado corretamente.');
+      }
+
       const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, customUrl, plan: selectedPlan, siteId: data.id }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Erro na requisição ao backend: ${response.status} ${response.statusText}`);
+      }
+
       const { sessionId } = await response.json();
-      stripe?.redirectToCheckout({ sessionId });
-    } catch (error) {
-      toast({ title: 'Erro', description: 'Falha ao criar o site.', variant: 'destructive' });
-      setShowCheckoutPopup(false); // Fechar o pop-up em caso de erro
+      if (!sessionId) {
+        throw new Error('Nenhum sessionId retornado pelo backend.');
+      }
+
+      // Redirecionar para o checkout
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
+      if (stripeError) {
+        throw new Error(`Erro ao redirecionar para o checkout: ${stripeError.message}`);
+      }
+    } catch (error: any) {
+      console.error('Erro no onSubmit:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Falha ao criar o site. Tente novamente.',
+        variant: 'destructive',
+      });
+      setShowCheckoutPopup(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -461,7 +507,6 @@ const Create = () => {
       label: 'Resumo',
       content: (
         <div className="space-y-6 relative">
-          {/* Fundo com gradiente */}
           <div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-purple-100 rounded-lg -z-10" />
           <h2 className="text-2xl font-semibold text-gray-800">Resumo do Seu Card</h2>
           <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -582,23 +627,31 @@ const Create = () => {
                       Voltar
                     </Button>
                   )}
-                  <Button
-                    type={activeStep === steps.length - 1 ? 'submit' : 'button'}
-                    onClick={activeStep < steps.length - 1 ? handleNext : undefined}
-                    disabled={isSubmitting}
-                    className="w-full bg-pink-600 hover:bg-pink-700 text-white"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Processando...
-                      </span>
-                    ) : activeStep < steps.length - 1 ? (
-                      'Próximo'
-                    ) : (
-                      `Pagar e Criar (${PLANS[selectedPlan].price})`
-                    )}
-                  </Button>
+                  {activeStep < steps.length - 1 ? (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={isSubmitting}
+                      className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+                    >
+                      Próximo
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processando...
+                        </span>
+                      ) : (
+                        `Pagar e Criar (${PLANS[selectedPlan].price})`
+                      )}
+                    </Button>
+                  )}
                 </div>
               </form>
             </Form>
