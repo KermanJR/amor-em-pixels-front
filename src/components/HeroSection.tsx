@@ -121,7 +121,7 @@ const HeroSection = () => {
               transition={{ duration: 0.3 }}
             >
               <Heart className="h-5 w-5 mr-2 animate-pulse" />
-              <span className="text-sm font-semibold uppercase tracking-widest">Exclusivo - R$ 59,90</span>
+              <span className="text-sm font-semibold uppercase tracking-widest">Card Básico - R$ 29,90</span>
             </motion.div>
 
             {/* Título */}
@@ -167,7 +167,7 @@ const HeroSection = () => {
                   size="lg"
                   className="w-full sm:w-80 h-16 text-xl bg-gradient-to-r from-pink-600 to-purple-800 hover:from-pink-700 hover:to-purple-900 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  Criar Minha Obra-Prima
+                  Criar Minha Card Digital
                   <ArrowRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-2" />
                 </Button>
               </Link>
