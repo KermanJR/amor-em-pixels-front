@@ -15,8 +15,8 @@ import { cn } from '@/lib/utils';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MediaUpload from '@/components/MediaUpload';
-import SitePreview from '@/components/SitePreview';
-import DarkSiteTemplate from '@/components/DarkSiteTemplate'; // Novo template
+import SiteTemplate from '@/components/SiteTemplate';
+import DarkSiteTemplate from '@/components/DarkSiteTemplate';
 import { supabase } from '../supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { loadStripe } from '@stripe/stripe-js';
@@ -34,14 +34,6 @@ const formSchema = z.object({
   coupleName: z.string().min(3, 'Nome do casal deve ter pelo menos 3 caracteres').max(50),
   relationshipStartDate: z.date({ required_error: 'Selecione a data de início' }),
   message: z.string().min(10, 'Mensagem deve ter pelo menos 10 caracteres').max(500),
-  timeline: z.array(
-    z.object({
-      date: z.date({ required_error: 'Selecione a data do momento' }),
-      title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres').max(50),
-      description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres').max(200),
-      photo: z.string().optional(),
-    })
-  ).optional(),
   spotifyLink: z.string().url('Insira um link válido do Spotify').optional().or(z.literal('')).refine(
     (val) => !val || val.includes('spotify.com'),
     'O link deve ser do Spotify'
@@ -56,7 +48,6 @@ type FormValues = z.infer<typeof formSchema>;
 const Create = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [photos, setPhotos] = useState<File[]>([]);
-  const [timelinePhotos, setTimelinePhotos] = useState<File[]>([]);
   const [musics, setMusics] = useState<File[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,7 +65,6 @@ const Create = () => {
       coupleName: '',
       relationshipStartDate: null,
       message: '',
-      timeline: [],
       spotifyLink: '',
       password: '',
       customUrl: '',
@@ -82,7 +72,7 @@ const Create = () => {
     },
   });
 
-  const watchedValues = form.watch(['coupleName', 'relationshipStartDate', 'message', 'timeline', 'spotifyLink', 'password', 'customUrl', 'template']);
+  const watchedValues = form.watch(['coupleName', 'relationshipStartDate', 'message', 'spotifyLink', 'password', 'customUrl', 'template']);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -105,16 +95,12 @@ const Create = () => {
       musics: musics.map(file => URL.createObjectURL(file)),
       spotifyLink: values.spotifyLink || '',
     };
-    const timelineWithPhotos = values.timeline?.map((moment, index) => ({
-      ...moment,
-      photo: timelinePhotos[index] ? URL.createObjectURL(timelinePhotos[index]) : moment.photo,
-    }));
     return {
-      formData: { ...values, timeline: timelineWithPhotos },
+      formData: { ...values },
       plan: selectedPlan,
       media: mediaPreview,
     };
-  }, [photos, timelinePhotos, musics, selectedPlan, watchedValues]);
+  }, [photos, musics, selectedPlan, watchedValues]);
 
   useEffect(() => {
     return () => {
@@ -142,7 +128,7 @@ const Create = () => {
       form.trigger('message');
       return;
     }
-    if (activeStep === 5 && (!values.password || errors.password || !values.customUrl || errors.customUrl)) {
+    if (activeStep === 4 && (!values.password || errors.password || !values.customUrl || errors.customUrl)) {
       form.trigger(['password', 'customUrl']);
       return;
     }
@@ -223,22 +209,6 @@ const Create = () => {
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
       );
-      const timelinePhotoUrls = await Promise.all(
-        timelinePhotos.map(async (file, index) => {
-          if (!file) return undefined;
-          const { data, error } = await supabase.storage
-            .from('media')
-            .upload(`${customUrl}/timeline/photo-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
-          if (error) throw error;
-          return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
-        })
-      );
-
-      const timelineWithPhotos = values.timeline?.map((moment, index) => ({
-        ...moment,
-        date: moment.date.toISOString(),
-        photo: timelinePhotoUrls[index],
-      }));
 
       const expirationDate = addMonths(new Date(), PLANS[selectedPlan].durationMonths);
       const finalSiteData = {
@@ -247,7 +217,6 @@ const Create = () => {
         form_data: {
           ...values,
           relationshipStartDate: values.relationshipStartDate.toISOString(),
-          timeline: timelineWithPhotos,
         },
         plan: selectedPlan,
         media: { photos: photoUrls, musics: musicUrls, spotifyLink: values.spotifyLink },
@@ -432,130 +401,6 @@ const Create = () => {
                   <Input placeholder="Cole o link do Spotify" className="rounded-md border-gray-300 focus:ring-pink-400" {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      ),
-    },
-    {
-      label: 'Linha do Tempo',
-      content: (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-800">Linha do Tempo do Relacionamento</h2>
-          <FormField
-            control={form.control}
-            name="timeline"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-gray-700">Momentos Especiais (Opcional)</FormLabel>
-                <div className="space-y-4">
-                  {field.value?.map((moment, index) => (
-                    <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-lg font-medium text-gray-800">Momento {index + 1}</h3>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            const newTimeline = [...field.value];
-                            newTimeline.splice(index, 1);
-                            field.onChange(newTimeline);
-                            setTimelinePhotos((prev) => prev.filter((_, i) => i !== index));
-                          }}
-                        >
-                          Remover
-                        </Button>
-                      </div>
-                      <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name={`timeline.${index}.date`}
-                          render={({ field: dateField }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel className="text-gray-700">Data do Momento</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button variant="outline" className={cn('w-full text-left border-gray-300', !dateField.value && 'text-gray-500')}>
-                                      <Calendar className="mr-2 h-4 w-4 text-pink-500" />
-                                      {dateField.value ? format(dateField.value, 'PPP', { locale: ptBR }) : 'Selecione a data'}
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                  <CalendarComponent mode="single" selected={dateField.value} onSelect={dateField.onChange} initialFocus />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`timeline.${index}.title`}
-                          render={({ field: titleField }) => (
-                            <FormItem>
-                              <FormLabel className="text-gray-700">Título</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex: Primeiro Encontro" className="rounded-md border-gray-300 focus:ring-pink-400" {...titleField} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`timeline.${index}.description`}
-                          render={({ field: descField }) => (
-                            <FormItem>
-                              <FormLabel className="text-gray-700">Descrição</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Descreva o momento..." className="rounded-md border-gray-300 focus:ring-pink-400" {...descField} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div>
-                          <FormLabel className="text-gray-700">Foto (Opcional)</FormLabel>
-                          <MediaUpload
-                            type="image"
-                            maxFiles={1}
-                            maxSize={5}
-                            onFilesChange={(files) => {
-                              setTimelinePhotos((prev) => {
-                                const newPhotos = [...prev];
-                                newPhotos[index] = files[0];
-                                return newPhotos;
-                              });
-                            }}
-                            currentFiles={timelinePhotos[index] ? [timelinePhotos[index]] : []}
-                            existingFiles={moment.photo ? [moment.photo] : []}
-                            onRemoveExisting={() => {
-                              setTimelinePhotos((prev) => {
-                                const newPhotos = [...prev];
-                                newPhotos[index] = undefined;
-                                return newPhotos;
-                              });
-                              const newTimeline = [...field.value];
-                              newTimeline[index].photo = undefined;
-                              field.onChange(newTimeline);
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => field.onChange([...(field.value || []), { date: null, title: '', description: '', photo: undefined }])}
-                    className="w-full border-pink-500 text-pink-500 hover:bg-pink-50"
-                  >
-                    Adicionar Momento
-                  </Button>
-                </div>
               </FormItem>
             )}
           />
@@ -763,7 +608,7 @@ const Create = () => {
             <div className="relative h-[500px] md:h-[600px] overflow-y-auto rounded-lg border border-gray-200 bg-gray-50">
               {previewData && previewData.formData.coupleName ? (
                 previewData.formData.template === 'light' ? (
-                  <SitePreview
+                  <SiteTemplate
                     formData={previewData.formData}
                     plan={previewData.plan}
                     media={previewData.media}
