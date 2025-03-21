@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -51,7 +51,6 @@ const Create = () => {
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [previewData, setPreviewData] = useState<any>(null);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -63,6 +62,9 @@ const Create = () => {
     resolver: zodResolver(formSchema),
     defaultValues: { coupleName: '', relationshipStartDate: null, message: '', spotifyLink: '', password: '', customUrl: '' },
   });
+
+  // Observar valores específicos do formulário
+  const watchedValues = form.watch(['coupleName', 'relationshipStartDate', 'message', 'spotifyLink', 'password', 'customUrl']);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -78,7 +80,8 @@ const Create = () => {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
+  // Memorizar previewData para evitar atualizações desnecessárias
+  const previewData = useMemo(() => {
     const values = form.getValues();
     const mediaPreview = {
       photos: photos.map(file => URL.createObjectURL(file)),
@@ -86,8 +89,17 @@ const Create = () => {
       musics: musics.map(file => URL.createObjectURL(file)),
       spotifyLink: values.spotifyLink || '',
     };
-    setPreviewData({ formData: values, plan: selectedPlan, media: mediaPreview });
-  }, [photos, videos, musics, selectedPlan, form.watch()]);
+    return { formData: values, plan: selectedPlan, media: mediaPreview };
+  }, [photos, videos, musics, selectedPlan, watchedValues]);
+
+  // Limpar URLs geradas ao desmontar o componente ou quando os arquivos mudarem
+  useEffect(() => {
+    return () => {
+      previewData.media.photos.forEach(url => URL.revokeObjectURL(url));
+      previewData.media.videos.forEach(url => URL.revokeObjectURL(url));
+      previewData.media.musics.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previewData.media.photos, previewData.media.videos, previewData.media.musics]);
 
   const handleNext = () => {
     const errors = form.formState.errors;
