@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Slider from 'react-slick'; // Para o carrossel de fotos
+import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { differenceInDays, differenceInMonths, differenceInYears, format } from 'date-fns';
