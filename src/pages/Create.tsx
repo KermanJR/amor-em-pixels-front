@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Heart, Loader2, Sparkles, Camera, Music, Lock, Mail } from 'lucide-react';
+import { Calendar, Heart, Loader2, Sparkles, Camera, Music, Lock, Mail, Smartphone, Share2, Save, Gift, AlertCircle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -145,7 +145,6 @@ const Create = () => {
     return true;
   };
 
-  // Função para converter arquivos em base64
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -172,7 +171,6 @@ const Create = () => {
     setShowCheckoutPopup(true);
 
     try {
-      // Converter fotos e músicas para base64
       const photoBase64 = await Promise.all(
         photos.map(async (file) => ({
           name: file.name,
@@ -215,7 +213,6 @@ const Create = () => {
         throw new Error('Stripe não foi inicializado corretamente.');
       }
 
-      // Enviar os dados para o backend
       const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,7 +221,7 @@ const Create = () => {
           customUrl,
           plan: selectedPlan,
           email: values.email,
-          siteData, // Enviar todos os dados do site
+          siteData,
         }),
       });
 
@@ -525,6 +522,53 @@ const Create = () => {
             )}
           />
           <p className="text-sm text-gray-500">Confira os detalhes acima antes de finalizar!</p>
+
+          {/* Nova Seção de Dicas */}
+          <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-pink-500 animate-twinkle" />
+              Dicas para Aproveitar seu Card Digital
+            </h3>
+            <ul className="space-y-4 text-gray-700">
+              <li className="flex items-start gap-3">
+                <Share2 className="h-5 w-5 text-pink-500 mt-1" />
+                <div>
+                  <strong>Compartilhe com seu Parceiro(a):</strong> Após o pagamento, você receberá o link do card por e-mail. Envie a URL personalizada (
+                  <span className="font-semibold">{`${window.location.origin}/${form.getValues('customUrl') || '[sua-url]'}`}</span>) e a senha para o seu parceiro(a) para que ele(a) possa acessar o card.
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <Smartphone className="h-5 w-5 text-pink-500 mt-1" />
+                <div>
+                  <strong>Prefira o Smartphone:</strong> O card digital foi projetado para uma experiência incrível em smartphones. Use o celular para visualizar as fotos, ouvir a música e navegar com facilidade.
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <Save className="h-5 w-5 text-pink-500 mt-1" />
+                <div>
+                  <strong>Salve o Link e a Senha:</strong> Anote o link e a senha em um local seguro (como um aplicativo de notas ou gerenciador de senhas) para não perder o acesso ao seu card.
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <Gift className="h-5 w-5 text-pink-500 mt-1" />
+                <div>
+                  <strong>Surpreenda em Momentos Especiais:</strong> Use o card para surpreender seu parceiro(a) em datas especiais, como aniversários de namoro, Dia dos Namorados ou outras ocasiões marcantes.
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-pink-500 mt-1" />
+                <div>
+                  <strong>Aproveite Antes que Expire:</strong> Seu card estará disponível por {PLANS[selectedPlan].durationMonths} meses. Aproveite para compartilhar e reviver suas memórias durante esse período!
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <HelpCircle className="h-5 w-5 text-pink-500 mt-1" />
+                <div>
+                  <strong>Precisa de Ajuda?</strong> Se tiver dificuldades para acessar o card ou precisar de suporte, entre em contato conosco pelo e-mail <a href="mailto:suporte@amorempixels.com" className="text-pink-600 hover:underline">suporte@amorempixels.com</a>.
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
       ),
     },
@@ -533,7 +577,7 @@ const Create = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
       <Navbar />
-      <main className="container mx-auto py-12 px-4 lg:px-8 ">
+      <main className="container mx-auto py-12 px-4 lg:px-8">
         <motion.h1
           className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 mt-4"
           initial={{ opacity: 0, y: -20 }}
