@@ -19,9 +19,10 @@ interface SiteTemplateProps {
     spotifyLink?: string;
   };
   customUrl?: string;
+  theme?: 'light' | 'dark';
 }
 
-const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) => {
+const SitePreview = ({ formData, plan, media, customUrl, theme = 'light' }: SiteTemplateProps) => {
   const { coupleName, relationshipStartDate, message } = formData;
   const { photos, spotifyLink } = media;
 
@@ -34,7 +35,6 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
     seconds: 0,
   });
 
-  // Calcular o tempo de relacionamento (contador detalhado)
   useEffect(() => {
     const calculateTimeTogether = () => {
       const startDate = new Date(relationshipStartDate);
@@ -52,7 +52,6 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
     return () => clearInterval(interval);
   }, [relationshipStartDate]);
 
-  // Configurações do carrossel
   const sliderSettings = {
     dots: true,
     infinite: photos.length > 1,
@@ -64,14 +63,39 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
     autoplaySpeed: 3000,
   };
 
+  const themeStyles = {
+    light: {
+      background: 'bg-gradient-to-b from-[#F5F5F0] to-[#FDF6E3]',
+      textColor: 'text-gray-800',
+      secondaryTextColor: 'text-gray-600',
+      cardBackground: 'bg-white',
+      cardBorder: 'border-gray-200',
+      particleColor: 'bg-[#D4AF37]',
+      lineColor: 'via-[#D4AF37]',
+    },
+    dark: {
+      background: 'bg-gradient-to-b from-[#2D1B2A] to-[#4B2E39]',
+      textColor: 'text-gray-100',
+      secondaryTextColor: 'text-gray-300',
+      cardBackground: 'bg-[#3A2333]',
+      cardBorder: 'border-gray-600',
+      particleColor: 'bg-[#FFD700]',
+      lineColor: 'via-[#FFD700]',
+    },
+  };
+
+  const currentTheme = themeStyles[theme];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F5F5F0] to-[#FDF6E3] flex flex-col items-center py-16 px-4 relative overflow-hidden">
-      {/* Partículas Douradas Sutil */}
+    <div
+      className={`min-h-screen ${currentTheme.background} flex flex-col items-center py-16 px-4 relative overflow-hidden ${theme === 'dark' ? 'dark-theme' : ''}`}
+    >
+      {/* Partículas Sutil */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(50)].map((_, idx) => (
           <div
             key={idx}
-            className="absolute w-1 h-1 bg-[#D4AF37] rounded-full animate-float"
+            className={`absolute w-1 h-1 ${currentTheme.particleColor} rounded-full animate-float`}
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
@@ -83,34 +107,45 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         ))}
       </div>
 
-      {/* Linhas Douradas Transpassando */}
+      {/* Linhas Transpassando */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-left-right" />
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-right-left" />
-        <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-left-right-delayed" />
-        <div className="absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-right-left-delayed" />
+        <div
+          className={`absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent ${currentTheme.lineColor} to-transparent animate-line-left-right`}
+        />
+        <div
+          className={`absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent ${currentTheme.lineColor} to-transparent animate-line-right-left`}
+        />
+        <div
+          className={`absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent ${currentTheme.lineColor} to-transparent animate-line-left-right-delayed`}
+        />
+        <div
+          className={`absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent ${currentTheme.lineColor} to-transparent animate-line-right-left-delayed`}
+        />
       </div>
 
       {/* Textura Sutil de Fundo */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/paper-fibers.png")' }} />
+      <div
+        className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/paper-fibers.png")' }}
+      />
 
       {/* Nome do Casal */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="text-5xl md:text-6xl font-serif text-gray-800 text-center mb-4"
+        className={`text-5xl md:text-6xl font-serif ${currentTheme.textColor} text-center mb-4`}
         style={{ fontFamily: "'Playfair Display', serif" }}
       >
         {coupleName || 'Seu Amor'}
       </motion.h1>
 
-      {/* Linha Decorativa Dourada */}
+      {/* Linha Decorativa */}
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: '120px' }}
         transition={{ duration: 1, delay: 0.4 }}
-        className="h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mb-6"
+        className={`h-px bg-gradient-to-r from-transparent ${currentTheme.lineColor} to-transparent mb-6`}
       />
 
       {/* Data de Início de Namoro */}
@@ -118,10 +153,13 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
-        className="text-lg text-gray-600 mb-8 text-center"
+        className={`text-lg ${currentTheme.secondaryTextColor} mb-8 text-center`}
         style={{ fontFamily: "'Raleway', sans-serif" }}
       >
-        Desde {relationshipStartDate ? format(new Date(relationshipStartDate), 'dd.MM.yyyy', { locale: ptBR }) : 'Data não informada'}
+        Desde{' '}
+        {relationshipStartDate
+          ? format(new Date(relationshipStartDate), 'dd.MM.yyyy', { locale: ptBR })
+          : 'Data não informada'}
       </motion.p>
 
       {/* Contador de Tempo */}
@@ -129,9 +167,12 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.8 }}
-        className="mb-12 p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-lg mx-auto w-full"
+        className={`mb-12 p-6 ${currentTheme.cardBackground} border ${currentTheme.cardBorder} rounded-lg shadow-sm max-w-lg mx-auto w-full`}
       >
-        <h2 className="text-xl text-gray-800 font-semibold mb-4" style={{fontFamily: "'Playfair Display', serif", textAlign: "center"  }}>
+        <h2
+          className={`text-xl ${currentTheme.textColor} font-semibold mb-4 text-center`}
+          style={{ fontFamily: "'Playfair Display', serif" }}
+        >
           Tempo Juntos
         </h2>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
@@ -145,13 +186,19 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
           ].map((item, idx) => (
             <motion.div
               key={idx}
-              className="p-3 bg-gray-50 rounded-lg"
+              className={`p-3 ${theme === 'light' ? 'bg-gray-50' : 'bg-gray-700'} rounded-lg`}
               whileHover={{ scale: 1.05 }}
             >
-              <p className="text-lg font-semibold text-gray-800" style={{ fontFamily: "'Raleway', sans-serif" }}>
+              <p
+                className={`text-lg font-semibold ${currentTheme.textColor}`}
+                style={{ fontFamily: "'Raleway', sans-serif" }}
+              >
                 {item.value}
               </p>
-              <p className="text-sm text-gray-600" style={{ fontFamily: "'Raleway', sans-serif" }}>
+              <p
+                className={`text-sm ${currentTheme.secondaryTextColor}`}
+                style={{ fontFamily: "'Raleway', sans-serif" }}
+              >
                 {item.label}
               </p>
             </motion.div>
@@ -164,7 +211,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 1.0 }}
-        className="text-xl text-gray-600 mb-16 text-center max-w-2xl mx-auto italic"
+        className={`text-xl ${currentTheme.secondaryTextColor} mb-16 text-center max-w-2xl mx-auto italic`}
         style={{ fontFamily: "'Playfair Display', serif" }}
       >
         "{message || 'Um amor para a eternidade.'}"
@@ -178,7 +225,10 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
           transition={{ duration: 0.8, delay: 1.2 }}
           className="mb-16 w-full max-w-3xl"
         >
-          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Playfair Display', serif"  }}>
+          <h2
+            className={`text-2xl font-semibold ${currentTheme.textColor} text-center mb-6`}
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
             Nossas Memórias
           </h2>
           <Slider {...sliderSettings} key={photos.length}>
@@ -204,7 +254,10 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
           transition={{ duration: 0.8, delay: 1.4 }}
           className="mb-16 w-full max-w-md"
         >
-          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Playfair Display', serif"  }}>
+          <h2
+            className={`text-2xl font-semibold ${currentTheme.textColor} text-center mb-6`}
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
             Nossa Música
           </h2>
           <iframe
@@ -214,7 +267,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
             frameBorder="0"
             allowTransparency="true"
             allow="encrypted-media"
-            className="rounded-lg shadow-sm border border-gray-200"
+            className={`rounded-lg shadow-sm border ${currentTheme.cardBorder}`}
           />
         </motion.div>
       )}
