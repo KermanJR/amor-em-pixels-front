@@ -59,11 +59,13 @@ const Navbar = () => {
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Logo/Brand */}
-        <Link to="/" className="flex items-center space-x-2 text-xl md:text-2xl font-bold">
-          <span className={cn('transition-colors duration-300', isScrolled ? 'text-love-600' : 'text-love-500')}>
-            Amor em Pixels
-          </span>
+        {/* Logo */}
+        <Link to="/" className="flex items-center space-x-2">
+          <img
+            src="../../public/Fashion-removebg-preview (2).png" // Substitua pelo caminho da sua logo
+            alt="Logo"
+            className="h-8 md:h-10 w-auto object-contain"
+          />
         </Link>
 
         {/* Desktop Navigation */}
@@ -86,7 +88,6 @@ const Navbar = () => {
           >
             Como Funciona
           </Link>
-        
 
           {user ? (
             <div className="flex items-center space-x-4">
