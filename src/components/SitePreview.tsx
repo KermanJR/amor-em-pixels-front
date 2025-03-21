@@ -55,20 +55,13 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
   // Configurações do carrossel
   const sliderSettings = {
     dots: true,
-    infinite: photos.length > 1, // Evita loop infinito com uma única foto
+    infinite: photos.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
-    autoplay: photos.length > 1, // Autoplay só se houver mais de uma foto
+    autoplay: photos.length > 1,
     autoplaySpeed: 3000,
-  };
-
-  // Gerar monograma com as iniciais do casal
-  const getInitials = () => {
-    const names = coupleName.split('&').map(name => name.trim());
-    const initials = names.map(name => name.charAt(0).toUpperCase()).join('');
-    return initials;
   };
 
   return (
@@ -90,27 +83,23 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         ))}
       </div>
 
+      {/* Linhas Douradas Transpassando */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-left-right" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-right-left" />
+        <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-left-right-delayed" />
+        <div className="absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent animate-line-right-left-delayed" />
+      </div>
+
       {/* Textura Sutil de Fundo */}
       <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/paper-fibers.png")' }} />
-
-      {/* Monograma com Iniciais do Casal */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.2, scale: 1 }}
-        transition={{ duration: 1 }}
-        className="absolute top-8 left-1/2 transform -translate-x-1/2"
-      >
-        <div className="w-24 h-24 rounded-full border-2 border-[#D4AF37] flex items-center justify-center text-[#D4AF37] text-3xl font-serif">
-          {getInitials()}
-        </div>
-      </motion.div>
 
       {/* Nome do Casal */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="text-5xl md:text-6xl font-serif text-gray-800 text-center mb-4 mt-24"
+        className="text-5xl md:text-6xl font-serif text-gray-800 text-center mb-4"
         style={{ fontFamily: "'Playfair Display', serif" }}
       >
         {coupleName || 'Seu Amor'}
@@ -140,12 +129,12 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.8 }}
-        className="mb-12 p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-md mx-auto"
+        className="mb-12 p-6 bg-white border border-gray-200 rounded-lg shadow-sm max-w-lg mx-auto w-full"
       >
         <h2 className="text-xl text-gray-800 font-semibold mb-4" style={{ fontFamily: "'Raleway', sans-serif" }}>
           Tempo Juntos
         </h2>
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
           {[
             { value: timeTogether.years, label: 'Anos' },
             { value: timeTogether.months, label: 'Meses' },
@@ -156,7 +145,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
           ].map((item, idx) => (
             <motion.div
               key={idx}
-              className="p-2 bg-gray-50 rounded-lg"
+              className="p-3 bg-gray-50 rounded-lg"
               whileHover={{ scale: 1.05 }}
             >
               <p className="text-lg font-semibold text-gray-800" style={{ fontFamily: "'Raleway', sans-serif" }}>
@@ -245,6 +234,64 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         }
         .animate-float {
           animation: float infinite;
+        }
+        @keyframes line-left-right {
+          0% {
+            transform: translateX(-100%);
+          }
+          50% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+        @keyframes line-right-left {
+          0% {
+            transform: translateX(100%);
+          }
+          50% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        @keyframes line-left-right-delayed {
+          0% {
+            transform: translateX(-100%);
+          }
+          50% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+        @keyframes line-right-left-delayed {
+          0% {
+            transform: translateX(100%);
+          }
+          50% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-line-left-right {
+          animation: line-left-right 15s infinite linear;
+        }
+        .animate-line-right-left {
+          animation: line-right-left 15s infinite linear;
+        }
+        .animate-line-left-right-delayed {
+          animation: line-left-right-delayed 20s infinite linear;
+          animation-delay: 5s;
+        }
+        .animate-line-right-left-delayed {
+          animation: line-right-left-delayed 20s infinite linear;
+          animation-delay: 5s;
         }
       `}</style>
     </div>
