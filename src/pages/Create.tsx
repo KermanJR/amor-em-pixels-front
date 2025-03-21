@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MediaUpload from '@/components/MediaUpload';
-import SiteTemplate from '@/components/SiteTemplate';
+import SitePreview from '@/components/SitePreview';
 import DarkSiteTemplate from '@/components/DarkSiteTemplate';
 import { supabase } from '../supabaseClient';
 import { useToast } from '@/hooks/use-toast';
@@ -608,7 +608,7 @@ const Create = () => {
             <div className="relative h-[500px] md:h-[600px] overflow-y-auto rounded-lg border border-gray-200 bg-gray-50">
               {previewData && previewData.formData.coupleName ? (
                 previewData.formData.template === 'light' ? (
-                  <SiteTemplate
+                  <SitePreview
                     formData={previewData.formData}
                     plan={previewData.plan}
                     media={previewData.media}
