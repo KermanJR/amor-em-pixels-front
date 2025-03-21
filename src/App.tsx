@@ -19,6 +19,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "./supabaseClient";
 import EditSite from "./pages/EditSite";
+import Confirmation from "./pages/Confirmation";
 import Dashboard from "./pages/Dashboard";
 import { motion } from 'framer-motion';
 import { Input } from "./components/ui/input";
@@ -226,6 +227,7 @@ const App = () => (
           <Route path="/como-funciona" element={<ComoFunciona />} />
           <Route path="/exemplos" element={<Exemplos />} />
           <Route path="/termos" element={<Termos />} />
+<Route path="/confirmation" element={<Confirmation />} />
           <Route path="/privacidade" element={<Privacidade />} />
           <Route path="/editar-site/:siteId" element={<EditSite />} />
           <Route path="/cookies" element={<Cookies />} />
