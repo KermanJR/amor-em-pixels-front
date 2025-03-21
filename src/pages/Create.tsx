@@ -40,7 +40,7 @@ const formSchema = z.object({
   ),
   password: z.string().min(4, 'A senha deve ter pelo menos 4 caracteres').max(20),
   customUrl: z.string().min(3, 'A URL deve ter pelo menos 3 caracteres').max(50).regex(/^[a-z0-9]+$/, 'A URL deve conter apenas letras minúsculas e números, sem espaços ou caracteres especiais'),
-  template: z.enum(['light', 'dark']), // Novo campo para o template
+  template: z.enum(['light', 'dark']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,6 +51,7 @@ const Create = () => {
   const [musics, setMusics] = useState<File[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCheckoutPopup, setShowCheckoutPopup] = useState(false); // Novo estado para o pop-up
   const [user, setUser] = useState<any>(null);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
@@ -68,7 +69,7 @@ const Create = () => {
       spotifyLink: '',
       password: '',
       customUrl: '',
-      template: 'light', // Valor padrão
+      template: 'light',
     },
   });
 
@@ -189,6 +190,8 @@ const Create = () => {
     if (!checkUserLimits()) return;
 
     setIsSubmitting(true);
+    setShowCheckoutPopup(true); // Mostrar o pop-up ao iniciar o processamento
+
     const customUrl = values.customUrl.toLowerCase().trim();
     try {
       const photoUrls = await Promise.all(
@@ -223,7 +226,7 @@ const Create = () => {
         created_at: new Date().toISOString(),
         expiration_date: expirationDate.toISOString(),
         status: 'pending',
-        template_type: values.template, // Salvar o template selecionado
+        template_type: values.template,
         password: values.password,
       };
 
@@ -246,6 +249,7 @@ const Create = () => {
       stripe?.redirectToCheckout({ sessionId });
     } catch (error) {
       toast({ title: 'Erro', description: 'Falha ao criar o site.', variant: 'destructive' });
+      setShowCheckoutPopup(false); // Fechar o pop-up em caso de erro
     } finally {
       setIsSubmitting(false);
     }
@@ -456,9 +460,11 @@ const Create = () => {
     {
       label: 'Resumo',
       content: (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+          {/* Fundo com gradiente */}
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-purple-100 rounded-lg -z-10" />
           <h2 className="text-2xl font-semibold text-gray-800">Resumo do Seu Card</h2>
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
             <ul className="space-y-4 text-gray-700">
               <li className="flex items-center gap-2">
                 <Heart className="h-5 w-5 text-pink-500" />
@@ -571,6 +577,7 @@ const Create = () => {
                       variant="outline"
                       onClick={handleBack}
                       className="w-full border-pink-500 text-pink-500 hover:bg-pink-50"
+                      disabled={isSubmitting}
                     >
                       Voltar
                     </Button>
@@ -662,6 +669,21 @@ const Create = () => {
               {isLogin ? 'Ainda não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pop-up de Redirecionamento para Checkout */}
+      <Dialog open={showCheckoutPopup} onOpenChange={setShowCheckoutPopup}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Redirecionando para o Checkout</DialogTitle>
+            <DialogDescription>
+              Aguarde, você está sendo redirecionado para a página de pagamento. Isso pode levar alguns segundos...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+          </div>
         </DialogContent>
       </Dialog>
 
