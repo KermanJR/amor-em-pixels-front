@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Heart, Loader2, Sparkles, Camera, Video, Music, Lock } from 'lucide-react';
+import { Calendar, Heart, Loader2, Sparkles, Camera, Music, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,7 +15,8 @@ import { cn } from '@/lib/utils';
 import { format, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MediaUpload from '@/components/MediaUpload';
-import SitePreview from '@/components/SitePreview';
+import SiteTemplate from '@/components/SiteTemplate';
+import DarkSiteTemplate from '@/components/DarkSiteTemplate'; // Novo template
 import { supabase } from '../supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { loadStripe } from '@stripe/stripe-js';
@@ -25,20 +26,29 @@ import Footer from '@/components/Footer';
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const PLANS = {
-  basic: { photos: 5, videos: 1, musics: 1, durationMonths: 6, price: 'R$29,90' },
-  premium: { photos: 8, videos: 1, musics: 1, durationMonths: 12, price: 'R$49,90' },
+  basic: { photos: 5, musics: 1, durationMonths: 6, price: 'R$29,90' },
+  premium: { photos: 8, musics: 1, durationMonths: 12, price: 'R$49,90' },
 };
 
 const formSchema = z.object({
   coupleName: z.string().min(3, 'Nome do casal deve ter pelo menos 3 caracteres').max(50),
   relationshipStartDate: z.date({ required_error: 'Selecione a data de início' }),
   message: z.string().min(10, 'Mensagem deve ter pelo menos 10 caracteres').max(500),
+  timeline: z.array(
+    z.object({
+      date: z.date({ required_error: 'Selecione a data do momento' }),
+      title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres').max(50),
+      description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres').max(200),
+      photo: z.string().optional(),
+    })
+  ).optional(),
   spotifyLink: z.string().url('Insira um link válido do Spotify').optional().or(z.literal('')).refine(
     (val) => !val || val.includes('spotify.com'),
     'O link deve ser do Spotify'
   ),
   password: z.string().min(4, 'A senha deve ter pelo menos 4 caracteres').max(20),
   customUrl: z.string().min(3, 'A URL deve ter pelo menos 3 caracteres').max(50).regex(/^[a-z0-9]+$/, 'A URL deve conter apenas letras minúsculas e números, sem espaços ou caracteres especiais'),
+  template: z.enum(['light', 'dark']), // Novo campo para o template
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -46,7 +56,7 @@ type FormValues = z.infer<typeof formSchema>;
 const Create = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [photos, setPhotos] = useState<File[]>([]);
-  const [videos, setVideos] = useState<File[]>([]);
+  const [timelinePhotos, setTimelinePhotos] = useState<File[]>([]);
   const [musics, setMusics] = useState<File[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,11 +70,19 @@ const Create = () => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { coupleName: '', relationshipStartDate: null, message: '', spotifyLink: '', password: '', customUrl: '' },
+    defaultValues: {
+      coupleName: '',
+      relationshipStartDate: null,
+      message: '',
+      timeline: [],
+      spotifyLink: '',
+      password: '',
+      customUrl: '',
+      template: 'light', // Valor padrão
+    },
   });
 
-  // Observar valores específicos do formulário
-  const watchedValues = form.watch(['coupleName', 'relationshipStartDate', 'message', 'spotifyLink', 'password', 'customUrl']);
+  const watchedValues = form.watch(['coupleName', 'relationshipStartDate', 'message', 'timeline', 'spotifyLink', 'password', 'customUrl', 'template']);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -80,26 +98,30 @@ const Create = () => {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  // Memorizar previewData para evitar atualizações desnecessárias
   const previewData = useMemo(() => {
     const values = form.getValues();
     const mediaPreview = {
       photos: photos.map(file => URL.createObjectURL(file)),
-      videos: videos.map(file => URL.createObjectURL(file)),
       musics: musics.map(file => URL.createObjectURL(file)),
       spotifyLink: values.spotifyLink || '',
     };
-    return { formData: values, plan: selectedPlan, media: mediaPreview };
-  }, [photos, videos, musics, selectedPlan, watchedValues]);
+    const timelineWithPhotos = values.timeline?.map((moment, index) => ({
+      ...moment,
+      photo: timelinePhotos[index] ? URL.createObjectURL(timelinePhotos[index]) : moment.photo,
+    }));
+    return {
+      formData: { ...values, timeline: timelineWithPhotos },
+      plan: selectedPlan,
+      media: mediaPreview,
+    };
+  }, [photos, timelinePhotos, musics, selectedPlan, watchedValues]);
 
-  // Limpar URLs geradas ao desmontar o componente ou quando os arquivos mudarem
   useEffect(() => {
     return () => {
       previewData.media.photos.forEach(url => URL.revokeObjectURL(url));
-      previewData.media.videos.forEach(url => URL.revokeObjectURL(url));
       previewData.media.musics.forEach(url => URL.revokeObjectURL(url));
     };
-  }, [previewData.media.photos, previewData.media.videos, previewData.media.musics]);
+  }, [previewData.media.photos, previewData.media.musics]);
 
   const handleNext = () => {
     const errors = form.formState.errors;
@@ -108,15 +130,19 @@ const Create = () => {
       toast({ title: 'Erro', description: 'Selecione um plano.', variant: 'destructive' });
       return;
     }
-    if (activeStep === 1 && (!values.coupleName || !values.relationshipStartDate || errors.coupleName || errors.relationshipStartDate)) {
+    if (activeStep === 1 && !values.template) {
+      toast({ title: 'Erro', description: 'Selecione um template.', variant: 'destructive' });
+      return;
+    }
+    if (activeStep === 2 && (!values.coupleName || !values.relationshipStartDate || errors.coupleName || errors.relationshipStartDate)) {
       form.trigger(['coupleName', 'relationshipStartDate']);
       return;
     }
-    if (activeStep === 2 && (!values.message || errors.message)) {
+    if (activeStep === 3 && (!values.message || errors.message)) {
       form.trigger('message');
       return;
     }
-    if (activeStep === 3 && (!values.password || errors.password || !values.customUrl || errors.customUrl)) {
+    if (activeStep === 5 && (!values.password || errors.password || !values.customUrl || errors.customUrl)) {
       form.trigger(['password', 'customUrl']);
       return;
     }
@@ -126,14 +152,13 @@ const Create = () => {
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const handleRemovePhoto = (index: number) => setPhotos((prev) => prev.filter((_, i) => i !== index));
-  const handleRemoveVideo = (index: number) => setVideos((prev) => prev.filter((_, i) => i !== index));
 
   const checkUserLimits = () => {
     const planLimits = PLANS[selectedPlan];
-    if (photos.length > planLimits.photos || videos.length > planLimits.videos || musics.length > planLimits.musics) {
+    if (photos.length > planLimits.photos || musics.length > planLimits.musics) {
       toast({
         title: 'Limite Excedido',
-        description: `Seu plano (${selectedPlan}) suporta até ${planLimits.photos} fotos, ${planLimits.videos} vídeos e ${planLimits.musics} músicas.`,
+        description: `Seu plano (${selectedPlan}) suporta até ${planLimits.photos} fotos e ${planLimits.musics} músicas.`,
         variant: 'destructive',
       });
       return false;
@@ -189,15 +214,6 @@ const Create = () => {
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
       );
-      const videoUrls = await Promise.all(
-        videos.map(async (file, index) => {
-          const { data, error } = await supabase.storage
-            .from('media')
-            .upload(`${customUrl}/videos/video-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
-          if (error) throw error;
-          return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
-        })
-      );
       const musicUrls = await Promise.all(
         musics.map(async (file, index) => {
           const { data, error } = await supabase.storage
@@ -207,18 +223,38 @@ const Create = () => {
           return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
         })
       );
+      const timelinePhotoUrls = await Promise.all(
+        timelinePhotos.map(async (file, index) => {
+          if (!file) return undefined;
+          const { data, error } = await supabase.storage
+            .from('media')
+            .upload(`${customUrl}/timeline/photo-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
+          if (error) throw error;
+          return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
+        })
+      );
+
+      const timelineWithPhotos = values.timeline?.map((moment, index) => ({
+        ...moment,
+        date: moment.date.toISOString(),
+        photo: timelinePhotoUrls[index],
+      }));
 
       const expirationDate = addMonths(new Date(), PLANS[selectedPlan].durationMonths);
       const finalSiteData = {
         custom_url: customUrl,
         user_id: user.id,
-        form_data: { ...values, relationshipStartDate: values.relationshipStartDate.toISOString() },
+        form_data: {
+          ...values,
+          relationshipStartDate: values.relationshipStartDate.toISOString(),
+          timeline: timelineWithPhotos,
+        },
         plan: selectedPlan,
-        media: { photos: photoUrls, videos: videoUrls, musics: musicUrls, spotifyLink: values.spotifyLink },
+        media: { photos: photoUrls, musics: musicUrls, spotifyLink: values.spotifyLink },
         created_at: new Date().toISOString(),
         expiration_date: expirationDate.toISOString(),
         status: 'pending',
-        template_type: 'site',
+        template_type: values.template, // Salvar o template selecionado
         password: values.password,
       };
 
@@ -253,7 +289,7 @@ const Create = () => {
         <div className="space-y-6">
           <h2 className="text-2xl font-semibold text-gray-800">Escolha seu Plano</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Object.entries(PLANS).map(([plan, { photos, videos, musics, price, durationMonths }]) => (
+            {Object.entries(PLANS).map(([plan, { photos, musics, price, durationMonths }]) => (
               <motion.div
                 key={plan}
                 className={cn(
@@ -267,12 +303,49 @@ const Create = () => {
                 <p className="text-3xl font-bold text-pink-600 mt-2">{price}</p>
                 <ul className="text-sm text-gray-600 mt-4 space-y-2">
                   <li>{photos} Fotos</li>
-                  <li>{videos} Vídeo</li>
                   <li>{musics} Música</li>
                   <li>{durationMonths} Meses de Duração</li>
                 </ul>
               </motion.div>
             ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: 'Template',
+      content: (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-800">Escolha o Tema do Seu Card</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <motion.div
+              className={cn(
+                'p-6 rounded-xl border shadow-md cursor-pointer transition-all duration-300',
+                form.getValues('template') === 'light' ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-purple-100' : 'bg-white border-gray-200 hover:shadow-lg'
+              )}
+              onClick={() => form.setValue('template', 'light')}
+              whileHover={{ scale: 1.02 }}
+            >
+              <h3 className="text-xl font-medium text-gray-900">Tema Claro</h3>
+              <p className="text-sm text-gray-600 mt-2">Um design elegante com fundo claro e detalhes dourados.</p>
+              <div className="mt-4 h-40 bg-gradient-to-b from-[#F5F5F0] to-[#FDF6E3] rounded-lg flex items-center justify-center">
+                <span className="text-gray-500">Prévia do Tema Claro</span>
+              </div>
+            </motion.div>
+            <motion.div
+              className={cn(
+                'p-6 rounded-xl border shadow-md cursor-pointer transition-all duration-300',
+                form.getValues('template') === 'dark' ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-purple-100' : 'bg-white border-gray-200 hover:shadow-lg'
+              )}
+              onClick={() => form.setValue('template', 'dark')}
+              whileHover={{ scale: 1.02 }}
+            >
+              <h3 className="text-xl font-medium text-gray-900">Tema Escuro</h3>
+              <p className="text-sm text-gray-600 mt-2">Um design sofisticado com fundo preto e detalhes dourados.</p>
+              <div className="mt-4 h-40 bg-gradient-to-b from-[#1A1A1A] to-[#2C2C2C] rounded-lg flex items-center justify-center">
+                <span className="text-gray-300">Prévia do Tema Escuro</span>
+              </div>
+            </motion.div>
           </div>
         </div>
       ),
@@ -349,15 +422,6 @@ const Create = () => {
             existingFiles={[]}
             onRemoveExisting={handleRemovePhoto}
           />
-          <MediaUpload
-            type="video"
-            maxFiles={PLANS[selectedPlan].videos}
-            maxSize={30}
-            onFilesChange={setVideos}
-            currentFiles={videos}
-            existingFiles={[]}
-            onRemoveExisting={handleRemoveVideo}
-          />
           <FormField
             control={form.control}
             name="spotifyLink"
@@ -368,6 +432,130 @@ const Create = () => {
                   <Input placeholder="Cole o link do Spotify" className="rounded-md border-gray-300 focus:ring-pink-400" {...field} />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      ),
+    },
+    {
+      label: 'Linha do Tempo',
+      content: (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-800">Linha do Tempo do Relacionamento</h2>
+          <FormField
+            control={form.control}
+            name="timeline"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">Momentos Especiais (Opcional)</FormLabel>
+                <div className="space-y-4">
+                  {field.value?.map((moment, index) => (
+                    <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-medium text-gray-800">Momento {index + 1}</h3>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            const newTimeline = [...field.value];
+                            newTimeline.splice(index, 1);
+                            field.onChange(newTimeline);
+                            setTimelinePhotos((prev) => prev.filter((_, i) => i !== index));
+                          }}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name={`timeline.${index}.date`}
+                          render={({ field: dateField }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel className="text-gray-700">Data do Momento</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button variant="outline" className={cn('w-full text-left border-gray-300', !dateField.value && 'text-gray-500')}>
+                                      <Calendar className="mr-2 h-4 w-4 text-pink-500" />
+                                      {dateField.value ? format(dateField.value, 'PPP', { locale: ptBR }) : 'Selecione a data'}
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <CalendarComponent mode="single" selected={dateField.value} onSelect={dateField.onChange} initialFocus />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`timeline.${index}.title`}
+                          render={({ field: titleField }) => (
+                            <FormItem>
+                              <FormLabel className="text-gray-700">Título</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: Primeiro Encontro" className="rounded-md border-gray-300 focus:ring-pink-400" {...titleField} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`timeline.${index}.description`}
+                          render={({ field: descField }) => (
+                            <FormItem>
+                              <FormLabel className="text-gray-700">Descrição</FormLabel>
+                              <FormControl>
+                                <Textarea placeholder="Descreva o momento..." className="rounded-md border-gray-300 focus:ring-pink-400" {...descField} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div>
+                          <FormLabel className="text-gray-700">Foto (Opcional)</FormLabel>
+                          <MediaUpload
+                            type="image"
+                            maxFiles={1}
+                            maxSize={5}
+                            onFilesChange={(files) => {
+                              setTimelinePhotos((prev) => {
+                                const newPhotos = [...prev];
+                                newPhotos[index] = files[0];
+                                return newPhotos;
+                              });
+                            }}
+                            currentFiles={timelinePhotos[index] ? [timelinePhotos[index]] : []}
+                            existingFiles={moment.photo ? [moment.photo] : []}
+                            onRemoveExisting={() => {
+                              setTimelinePhotos((prev) => {
+                                const newPhotos = [...prev];
+                                newPhotos[index] = undefined;
+                                return newPhotos;
+                              });
+                              const newTimeline = [...field.value];
+                              newTimeline[index].photo = undefined;
+                              field.onChange(newTimeline);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => field.onChange([...(field.value || []), { date: null, title: '', description: '', photo: undefined }])}
+                    className="w-full border-pink-500 text-pink-500 hover:bg-pink-50"
+                  >
+                    Adicionar Momento
+                  </Button>
+                </div>
               </FormItem>
             )}
           />
@@ -444,10 +632,6 @@ const Create = () => {
                 <span><strong>Fotos:</strong> {photos.length} de {PLANS[selectedPlan].photos}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Video className="h-5 w-5 text-pink-500" />
-                <span><strong>Vídeos:</strong> {videos.length} de {PLANS[selectedPlan].videos}</span>
-              </li>
-              <li className="flex items-center gap-2">
                 <Music className="h-5 w-5 text-pink-500" />
                 <span><strong>Música do Spotify:</strong> {form.getValues('spotifyLink') ? 'Sim' : 'Não'}</span>
               </li>
@@ -462,6 +646,10 @@ const Create = () => {
               <li className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-pink-500" />
                 <span><strong>Plano:</strong> {selectedPlan === 'basic' ? 'Básico' : 'Premium'} ({PLANS[selectedPlan].price})</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-pink-500" />
+                <span><strong>Tema:</strong> {form.getValues('template') === 'light' ? 'Claro' : 'Escuro'}</span>
               </li>
             </ul>
           </div>
@@ -574,12 +762,21 @@ const Create = () => {
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Pré-visualização</h2>
             <div className="relative h-[500px] md:h-[600px] overflow-y-auto rounded-lg border border-gray-200 bg-gray-50">
               {previewData && previewData.formData.coupleName ? (
-                <SitePreview
-                  formData={previewData.formData}
-                  plan={previewData.plan}
-                  media={previewData.media}
-                  customUrl={previewData.formData.customUrl || previewData.formData.coupleName.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim()}
-                />
+                previewData.formData.template === 'light' ? (
+                  <SiteTemplate
+                    formData={previewData.formData}
+                    plan={previewData.plan}
+                    media={previewData.media}
+                    customUrl={previewData.formData.customUrl || previewData.formData.coupleName.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim()}
+                  />
+                ) : (
+                  <DarkSiteTemplate
+                    formData={previewData.formData}
+                    plan={previewData.plan}
+                    media={previewData.media}
+                    customUrl={previewData.formData.customUrl || previewData.formData.coupleName.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, '').trim()}
+                  />
+                )
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
                   <Sparkles className="h-10 w-10 animate-twinkle mb-4" />
