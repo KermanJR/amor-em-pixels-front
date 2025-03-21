@@ -53,37 +53,36 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-pink-50 flex flex-col items-center py-12 px-4">
-      {/* Elementos Florais Decorativos */}
-      <div className="absolute top-0 left-0 w-24 h-24 opacity-20">
-        <svg viewBox="0 0 100 100" className="fill-current text-gray-300">
-          <path d="M50 10 C70 10 90 30 90 50 C90 70 70 90 50 90 C30 90 10 70 10 50 C10 30 30 10 50 10 Z M50 20 C35 20 20 35 20 50 C20 65 35 80 50 80 C65 80 80 65 80 50 C80 35 65 20 50 20 Z" />
-        </svg>
-      </div>
-      <div className="absolute bottom-0 right-0 w-24 h-24 opacity-20">
-        <svg viewBox="0 0 100 100" className="fill-current text-gray-300">
-          <path d="M50 10 C70 10 90 30 90 50 C90 70 70 90 50 90 C30 90 10 70 10 50 C10 30 30 10 50 10 Z M50 20 C35 20 20 35 20 50 C20 65 35 80 50 80 C65 80 80 65 80 50 C80 35 65 20 50 20 Z" />
-        </svg>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#F5F5F0] to-[#FDF6E3] flex flex-col items-center py-16 px-4">
+      {/* Textura Sutil de Fundo */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/paper-fibers.png")' }} />
 
       {/* Nome do Casal */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-4"
-        style={{ fontFamily: "'Dancing Script', cursive" }}
+        className="text-5xl md:text-6xl font-serif text-gray-800 text-center mb-4"
+        style={{ fontFamily: "'Playfair Display', serif" }}
       >
         {coupleName || 'Seu Amor'}
       </motion.h1>
+
+      {/* Linha Decorativa Dourada */}
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: '100px' }}
+        transition={{ duration: 1, delay: 0.2 }}
+        className="h-px bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mb-6"
+      />
 
       {/* Data de Início de Namoro */}
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="text-lg text-gray-600 mb-6 text-center"
-        style={{ fontFamily: "'Poppins', sans-serif" }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="text-lg text-gray-600 mb-8 text-center"
+        style={{ fontFamily: "'Raleway', sans-serif" }}
       >
         Desde {relationshipStartDate ? format(new Date(relationshipStartDate), 'dd.MM.yyyy', { locale: ptBR }) : 'Data não informada'}
       </motion.p>
@@ -92,10 +91,10 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-        className="mb-8 bg-white border border-pink-200 rounded-full px-6 py-2 text-center"
+        transition={{ duration: 0.8, delay: 0.6 }}
+        className="mb-12 bg-white border border-gray-200 rounded-lg px-6 py-3 shadow-sm text-center"
       >
-        <p className="text-md text-gray-700" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <p className="text-md text-gray-700" style={{ fontFamily: "'Raleway', sans-serif" }}>
           {calculateTimeTogether()}
         </p>
       </motion.div>
@@ -104,9 +103,9 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        className="text-lg text-gray-600 mb-12 text-center max-w-2xl mx-auto italic"
-        style={{ fontFamily: "'Dancing Script', cursive" }}
+        transition={{ duration: 0.8, delay: 0.8 }}
+        className="text-xl text-gray-600 mb-16 text-center max-w-2xl mx-auto italic"
+        style={{ fontFamily: "'Playfair Display', serif" }}
       >
         "{message || 'Um amor para a eternidade.'}"
       </motion.p>
@@ -116,10 +115,10 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="mb-12 w-full max-w-2xl"
+          transition={{ duration: 0.8, delay: 1.0 }}
+          className="mb-16 w-full max-w-3xl"
         >
-          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Raleway', sans-serif" }}>
             Nossas Memórias
           </h2>
           <Slider {...sliderSettings}>
@@ -142,10 +141,10 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.0 }}
-          className="mb-12 w-full max-w-md"
+          transition={{ duration: 0.8, delay: 1.2 }}
+          className="mb-16 w-full max-w-md"
         >
-          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6" style={{ fontFamily: "'Raleway', sans-serif" }}>
             Nossa Música
           </h2>
           <iframe
@@ -155,7 +154,7 @@ const SitePreview = ({ formData, plan, media, customUrl }: SiteTemplateProps) =>
             frameBorder="0"
             allowTransparency="true"
             allow="encrypted-media"
-            className="rounded-lg"
+            className="rounded-lg shadow-sm border border-gray-200"
           />
         </motion.div>
       )}
