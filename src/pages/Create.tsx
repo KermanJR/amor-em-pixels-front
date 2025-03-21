@@ -217,7 +217,7 @@ const Create = () => {
         throw new Error('Stripe não foi inicializado corretamente.');
       }
 
-      const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
+      const response = await fetch('http://localhost:3030/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: null, customUrl, plan: selectedPlan, siteId: data.id, email: values.email }),
