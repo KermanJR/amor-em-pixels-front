@@ -531,7 +531,7 @@ const Create = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
       <Navbar />
       <main className="container mx-auto py-12 px-4 lg:px-8">
         <motion.h1
