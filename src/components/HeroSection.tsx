@@ -28,7 +28,7 @@ const HeroSection = () => {
         'https://images.pexels.com/photos/3512506/pexels-photo-3512506.png?auto=compress&cs=tinysrgb&w=1200',
       ],
       musics: [],
-      spotifyLink: 'https://open.spotify.com/track/4uUG5tS1BAXw0qD37FGe1S',
+      spotifyLink: 'https://open.spotify.com/intl-pt/track/0wZZRJNv6bwSjAHVRf97ND?si=9789cb58c5be42ce',
     },
     customUrl: 'ana-e-joao',
     theme: 'light',
@@ -46,7 +46,7 @@ const HeroSection = () => {
         'https://images.pexels.com/photos/1288245/pexels-photo-1288245.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       ],
       musics: [],
-      spotifyLink: 'https://open.spotify.com/track/4uUG5tS1BAXw0qD37FGe1S',
+      spotifyLink: 'https://open.spotify.com/intl-pt/track/0wZZRJNv6bwSjAHVRf97ND?si=9789cb58c5be42ce',
     },
     customUrl: 'lara-e-pedro',
     theme: 'dark', // Garantindo que o tema seja 'dark'
