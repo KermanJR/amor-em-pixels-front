@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Heart, ArrowRight, Star, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import SitePreview from './SitePreview'; // Importe o componente SitePreview
 
 const HeroSection = () => {
   const [loaded, setLoaded] = useState(false);
@@ -12,6 +13,43 @@ const HeroSection = () => {
     const timer = setTimeout(() => setLoaded(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Dados fictícios para os templates claro e escuro
+  const mockDataLight = {
+    formData: {
+      coupleName: 'Ana & João',
+      relationshipStartDate: new Date('2020-01-01'),
+      message: 'Um amor para a eternidade.',
+    },
+    plan: 'premium',
+    media: {
+      photos: [
+        'https://images.pexels.com/photos/3512506/pexels-photo-3512506.png?auto=compress&cs=tinysrgb&w=1200',
+      ],
+      musics: [],
+      spotifyLink: 'https://open.spotify.com/track/4uUG5tS1BAXw0qD37FGe1S',
+    },
+    customUrl: 'ana-e-joao',
+    theme: 'light',
+  };
+
+  const mockDataDark = {
+    formData: {
+      coupleName: 'Lara & Pedro',
+      relationshipStartDate: new Date('2019-06-15'),
+      message: 'Juntos para sempre.',
+    },
+    plan: 'premium',
+    media: {
+      photos: [
+        'https://images.pexels.com/photos/1288245/pexels-photo-1288245.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      ],
+      musics: [],
+      spotifyLink: 'https://open.spotify.com/track/4uUG5tS1BAXw0qD37FGe1S',
+    },
+    customUrl: 'lara-e-pedro',
+    theme: 'dark',
+  };
 
   return (
     <section className="relative overflow-hidden pt-32 pb-24 lg:pt-40 lg:pb-32">
@@ -151,7 +189,7 @@ const HeroSection = () => {
             </div>
           </motion.div>
 
-          {/* Composição Visual */}
+          {/* Composição Visual com Templates Claro e Escuro */}
           <motion.div
             className={cn(
               'relative',
@@ -161,14 +199,12 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
           >
-            {/* Card Principal */}
+            {/* Card Principal (Template Claro) */}
             <div className="relative z-10 bg-white p-6 rounded-3xl shadow-2xl max-w-md mx-auto transform hover:scale-105 transition-all duration-500">
               <div className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-purple-100">
-                <img
-                  src="https://images.pexels.com/photos/3512506/pexels-photo-3512506.png?auto=compress&cs=tinysrgb&w=1200"
-                  alt="Casal celebrando amor"
-                  className="object-cover w-full h-full transition-transform duration-700 hover:scale-110"
-                />
+                <div className="w-full h-full overflow-y-auto">
+                  <SitePreview {...mockDataLight} />
+                </div>
               </div>
               {/* Selo de qualidade */}
               <motion.div
@@ -177,22 +213,29 @@ const HeroSection = () => {
               >
                 <Star className="h-6 w-6 animate-twinkle" />
               </motion.div>
+              {/* Etiqueta "Claro" */}
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-4 py-1 rounded-full shadow-md text-sm font-semibold">
+                Tema Claro
+              </div>
             </div>
 
-            {/* Elementos Flutuantes */}
+            {/* Elemento Flutuante 1 (Template Escuro) */}
             <motion.div
               className="absolute top-0 -left-16 bg-white p-4 rounded-xl shadow-lg transform -rotate-12 hover:rotate-0 transition-all duration-500"
               whileHover={{ scale: 1.1, rotate: 0 }}
             >
-              <div className="w-32 aspect-video rounded-lg overflow-hidden border border-gray-100">
-                <img
-                  src="https://images.pexels.com/photos/1288245/pexels-photo-1288245.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                  alt="Momento especial"
-                  className="object-cover w-full h-full"
-                />
+              <div className="w-32 aspect-[3/4] rounded-lg overflow-hidden border border-gray-100">
+                <div className="w-full h-full overflow-y-auto">
+                  <SitePreview {...mockDataDark} />
+                </div>
+              </div>
+              {/* Etiqueta "Escuro" */}
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-3 py-1 rounded-full shadow-md text-xs font-semibold">
+                Tema Escuro
               </div>
             </motion.div>
 
+            {/* Elemento Flutuante 2 (Mensagem Decorativa) */}
             <motion.div
               className="absolute -bottom-12 right-8 bg-gradient-to-r from-pink-600 to-purple-800 text-white p-4 rounded-xl shadow-lg transform rotate-8 hover:rotate-0 transition-all duration-500"
               whileHover={{ scale: 1.1, rotate: 0 }}
@@ -212,20 +255,38 @@ const HeroSection = () => {
       {/* Estilos CSS */}
       <style jsx>{`
         @keyframes twinkle {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
+          0%,
+          100% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 1;
+          }
         }
         @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
         }
         @keyframes draw {
-          0% { stroke-dashoffset: 2000; }
-          100% { stroke-dashoffset: 0; }
+          0% {
+            stroke-dashoffset: 2000;
+          }
+          100% {
+            stroke-dashoffset: 0;
+          }
         }
         @keyframes draw-reverse {
-          0% { stroke-dashoffset: 0; }
-          100% { stroke-dashoffset: 2000; }
+          0% {
+            stroke-dashoffset: 0;
+          }
+          100% {
+            stroke-dashoffset: 2000;
+          }
         }
         .animate-twinkle {
           animation: twinkle 2s ease-in-out infinite;
@@ -242,6 +303,14 @@ const HeroSection = () => {
           stroke-dasharray: 2000;
           stroke-dashoffset: 0;
           animation: draw-reverse 10s linear infinite;
+        }
+        /* Ajustes para o preview dentro do mockup */
+        .aspect-[3/4] > div {
+          transform: scale(0.3); /* Reduz o tamanho do conteúdo para caber no mockup */
+          transform-origin: top center;
+        }
+        .aspect-[3/4] .min-h-screen {
+          min-height: auto; /* Remove a altura mínima para caber no mockup */
         }
       `}</style>
     </section>
