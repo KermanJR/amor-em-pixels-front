@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Heart, Loader2, Sparkles } from 'lucide-react';
+import { Calendar, Heart, Loader2, Sparkles, Camera, Video, Music, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { format, addMonths } from 'date-fns';
@@ -50,6 +51,11 @@ const Create = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -122,8 +128,37 @@ const Create = () => {
     return true;
   };
 
+  const handleLogin = async () => {
+    setAuthLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      setIsAuthDialogOpen(false);
+      toast({ title: 'Sucesso', description: 'Login realizado com sucesso!' });
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Falha no login.', variant: 'destructive' });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    setAuthLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      toast({ title: 'Sucesso', description: 'Cadastro realizado! Verifique seu e-mail.' });
+      setIsLogin(true);
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Falha no cadastro.', variant: 'destructive' });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const onSubmit = async (values: FormValues) => {
     if (!user) {
+      setIsAuthDialogOpen(true);
       toast({ title: 'Aviso', description: 'Faça login para continuar.', variant: 'destructive' });
       return;
     }
@@ -321,29 +356,47 @@ const Create = () => {
       ),
     },
     {
-      label: 'Senha',
+      label: 'Resumo',
       content: (
         <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-800">Segurança</h2>
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-gray-700">Senha de Acesso</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Crie uma senha (mín. 4 caracteres)"
-                    className="rounded-md border-gray-300 focus:ring-pink-400"
-                    {...field}
-                  />
-                </FormControl>
-                <p className="text-sm text-gray-500">Proteja seu card com uma senha única.</p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <h2 className="text-2xl font-semibold text-gray-800">Resumo do Seu Card</h2>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <ul className="space-y-4 text-gray-700">
+              <li className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-pink-500" />
+                <span><strong>Nome do Casal:</strong> {form.getValues('coupleName') || 'Não informado'}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-pink-500" />
+                <span><strong>Data de Início:</strong> {form.getValues('relationshipStartDate') ? format(form.getValues('relationshipStartDate'), 'dd/MM/yyyy', { locale: ptBR }) : 'Não informada'}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-pink-500" />
+                <span><strong>Mensagem:</strong> {form.getValues('message')?.substring(0, 50) || 'Não informada'}{form.getValues('message')?.length > 50 ? '...' : ''}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Camera className="h-5 w-5 text-pink-500" />
+                <span><strong>Fotos:</strong> {photos.length} de {PLANS[selectedPlan].photos}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Video className="h-5 w-5 text-pink-500" />
+                <span><strong>Vídeos:</strong> {videos.length} de {PLANS[selectedPlan].videos}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Music className="h-5 w-5 text-pink-500" />
+                <span><strong>Música do Spotify:</strong> {form.getValues('spotifyLink') ? 'Sim' : 'Não'}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Lock className="h-5 w-5 text-pink-500" />
+                <span><strong>Senha:</strong> {form.getValues('password') ? 'Definida' : 'Não definida'}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-pink-500" />
+                <span><strong>Plano:</strong> {selectedPlan === 'basic' ? 'Básico' : 'Premium'} ({PLANS[selectedPlan].price})</span>
+              </li>
+            </ul>
+          </div>
+          <p className="text-sm text-gray-500">Confira os detalhes acima antes de finalizar!</p>
         </div>
       ),
     },
@@ -429,12 +482,12 @@ const Create = () => {
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Criando...
+                        Processando...
                       </span>
                     ) : activeStep < steps.length - 1 ? (
                       'Próximo'
                     ) : (
-                      `Criar (${PLANS[selectedPlan].price})`
+                      `Pagar e Criar (${PLANS[selectedPlan].price})`
                     )}
                   </Button>
                 </div>
@@ -469,6 +522,37 @@ const Create = () => {
         </div>
       </main>
       <Footer />
+
+      {/* Modal de Autenticação */}
+      <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{isLogin ? 'Faça Login' : 'Cadastre-se'}</DialogTitle>
+            <DialogDescription>{isLogin ? 'Entre para criar seu Card Digital.' : 'Crie uma conta para começar.'}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <DialogFooter className="flex flex-col gap-2">
+            <Button onClick={isLogin ? handleLogin : handleSignUp} disabled={authLoading} className="w-full bg-pink-600 hover:bg-pink-700">
+              {authLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processando...
+                </span>
+              ) : isLogin ? (
+                'Entrar'
+              ) : (
+                'Cadastrar'
+              )}
+            </Button>
+            <Button variant="link" onClick={() => setIsLogin(!isLogin)} disabled={authLoading}>
+              {isLogin ? 'Ainda não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Estilos */}
       <style jsx>{`
