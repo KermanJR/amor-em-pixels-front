@@ -533,9 +533,9 @@ const Create = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
       <Navbar />
-      <main className="container mx-auto py-12 px-4 lg:px-8">
+      <main className="container mx-auto py-12 px-4 lg:px-8 mt-4">
         <motion.h1
-          className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12"
+          className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 mt-1"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
