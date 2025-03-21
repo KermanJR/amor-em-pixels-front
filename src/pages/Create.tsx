@@ -17,7 +17,6 @@ import { ptBR } from 'date-fns/locale';
 import MediaUpload from '@/components/MediaUpload';
 import SitePreview from '@/components/SitePreview';
 import DarkSiteTemplate from '@/components/DarkSiteTemplate';
-import { supabase } from '../supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { loadStripe } from '@stripe/stripe-js';
 import Navbar from '@/components/Navbar';
@@ -30,7 +29,6 @@ const PLANS = {
   premium: { photos: 8, musics: 1, durationMonths: 12, price: 'R$49,90' },
 };
 
-// Atualizar o schema para incluir o campo de e-mail
 const formSchema = z.object({
   coupleName: z.string().min(3, 'Nome do casal deve ter pelo menos 3 caracteres').max(50),
   relationshipStartDate: z.date({ required_error: 'Selecione a data de início' }),
@@ -147,6 +145,16 @@ const Create = () => {
     return true;
   };
 
+  // Função para converter arquivos em base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const onSubmit = async (values: FormValues) => {
     const isValid = await form.trigger();
     if (!isValid) {
@@ -163,64 +171,61 @@ const Create = () => {
     setIsSubmitting(true);
     setShowCheckoutPopup(true);
 
-    const customUrl = values.customUrl.toLowerCase().trim();
     try {
-      const photoUrls = await Promise.all(
-        photos.map(async (file, index) => {
-          const { data, error } = await supabase.storage
-            .from('media')
-            .upload(`${customUrl}/photos/photo-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
-          if (error) throw new Error(`Erro ao fazer upload da foto ${index}: ${error.message}`);
-          return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
-        })
+      // Converter fotos e músicas para base64
+      const photoBase64 = await Promise.all(
+        photos.map(async (file) => ({
+          name: file.name,
+          data: await fileToBase64(file),
+        }))
       );
 
-      const musicUrls = await Promise.all(
-        musics.map(async (file, index) => {
-          const { data, error } = await supabase.storage
-            .from('media')
-            .upload(`${customUrl}/musics/music-${index}-${Date.now()}.${file.name.split('.').pop()}`, file);
-          if (error) throw new Error(`Erro ao fazer upload da música ${index}: ${error.message}`);
-          return supabase.storage.from('media').getPublicUrl(data.path).data.publicUrl;
-        })
+      const musicBase64 = await Promise.all(
+        musics.map(async (file) => ({
+          name: file.name,
+          data: await fileToBase64(file),
+        }))
       );
 
+      const customUrl = values.customUrl.toLowerCase().trim();
       const expirationDate = addMonths(new Date(), PLANS[selectedPlan].durationMonths);
-      const finalSiteData = {
+      const siteData = {
         custom_url: customUrl,
-        user_id: null, // Não há usuário logado
+        user_id: null,
         form_data: {
           ...values,
           relationshipStartDate: values.relationshipStartDate.toISOString(),
         },
         plan: selectedPlan,
-        media: { photos: photoUrls, musics: musicUrls, spotifyLink: values.spotifyLink },
+        media: {
+          photos: photoBase64,
+          musics: musicBase64,
+          spotifyLink: values.spotifyLink,
+        },
         created_at: new Date().toISOString(),
         expiration_date: expirationDate.toISOString(),
         status: 'pending',
         template_type: values.template,
         password: values.password,
-        email: values.email, // Adicionar o e-mail ao registro
+        email: values.email,
       };
-
-      const { data, error } = await supabase.from('sites').insert([finalSiteData]).select('id').single();
-      if (error) {
-        if (error.code === '23505') {
-          toast({ title: 'Erro', description: 'Esta URL já está em uso.', variant: 'destructive' });
-          return;
-        }
-        throw new Error(`Erro ao inserir no Supabase: ${error.message}`);
-      }
 
       const stripe = await stripePromise;
       if (!stripe) {
         throw new Error('Stripe não foi inicializado corretamente.');
       }
 
+      // Enviar os dados para o backend
       const response = await fetch('https://amor-em-pixels.onrender.com/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: null, customUrl, plan: selectedPlan, siteId: data.id, email: values.email }),
+        body: JSON.stringify({
+          userId: null,
+          customUrl,
+          plan: selectedPlan,
+          email: values.email,
+          siteData, // Enviar todos os dados do site
+        }),
       });
 
       if (!response.ok) {
