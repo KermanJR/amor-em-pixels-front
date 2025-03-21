@@ -167,7 +167,7 @@ const HeroSection = () => {
                   size="lg"
                   className="w-full sm:w-80 h-16 text-xl bg-gradient-to-r from-pink-600 to-purple-800 hover:from-pink-700 hover:to-purple-900 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  Criar Minha Card Digital
+                  Criar Meu Card Digital
                   <ArrowRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-2" />
                 </Button>
               </Link>
