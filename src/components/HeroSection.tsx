@@ -8,6 +8,7 @@ import SitePreview from './SitePreview'; // Importe o componente SitePreview
 
 const HeroSection = () => {
   const [loaded, setLoaded] = useState(false);
+  const [hovered, setHovered] = useState<'light' | 'dark' | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoaded(true), 100);
@@ -120,7 +121,7 @@ const HeroSection = () => {
               transition={{ duration: 0.3 }}
             >
               <Heart className="h-5 w-5 mr-2 animate-pulse" />
-              <span className="text-sm font-semibold uppercase tracking-widest">Exclusivo - R$ 59,90</span>
+              <span className="text-sm font-semibold uppercase tracking-widest">Plano Básico - R$ 29,90</span>
             </motion.div>
 
             {/* Título */}
@@ -166,7 +167,7 @@ const HeroSection = () => {
                   size="lg"
                   className="w-full sm:w-80 h-16 text-xl bg-gradient-to-r from-pink-600 to-purple-800 hover:from-pink-700 hover:to-purple-900 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  Criar Minha Obra-Prima
+                  Criar Meu Card Digital
                   <ArrowRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-2" />
                 </Button>
               </Link>
@@ -192,15 +193,50 @@ const HeroSection = () => {
           {/* Composição Visual com Templates Claro e Escuro */}
           <motion.div
             className={cn(
-              'relative',
+              'relative max-w-md mx-auto',
               loaded ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
             )}
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
           >
-            {/* Card Principal (Template Claro) */}
-            <div className="relative z-10 bg-white p-6 rounded-3xl shadow-2xl max-w-md mx-auto transform hover:scale-105 transition-all duration-500">
+            {/* Mockup de Trás (Template Escuro) */}
+            <motion.div
+              className="absolute top-0 left-0 w-full bg-white p-6 rounded-3xl shadow-2xl transform rotate-6 translate-x-8 translate-y-8"
+              style={{ zIndex: hovered === 'dark' ? 20 : 10 }}
+              onMouseEnter={() => setHovered('dark')}
+              onMouseLeave={() => setHovered(null)}
+              animate={{
+                rotate: hovered === 'dark' ? 0 : 6,
+                translateX: hovered === 'dark' ? 0 : 32,
+                translateY: hovered === 'dark' ? 0 : 32,
+                scale: hovered === 'dark' ? 1.05 : 1,
+              }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+            >
+              <div className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-purple-100">
+                <div className="w-full h-full overflow-y-auto">
+                  <SitePreview {...mockDataDark} />
+                </div>
+              </div>
+              {/* Etiqueta "Escuro" */}
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-4 py-1 rounded-full shadow-md text-sm font-semibold">
+                Tema Escuro
+              </div>
+            </motion.div>
+
+            {/* Mockup Principal (Template Claro) */}
+            <motion.div
+              className="relative bg-white p-6 rounded-3xl shadow-2xl transform -rotate-6"
+              style={{ zIndex: hovered === 'light' ? 20 : 15 }}
+              onMouseEnter={() => setHovered('light')}
+              onMouseLeave={() => setHovered(null)}
+              animate={{
+                rotate: hovered === 'light' ? 0 : -6,
+                scale: hovered === 'light' ? 1.05 : 1,
+              }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+            >
               <div className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-purple-100">
                 <div className="w-full h-full overflow-y-auto">
                   <SitePreview {...mockDataLight} />
@@ -216,33 +252,6 @@ const HeroSection = () => {
               {/* Etiqueta "Claro" */}
               <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-4 py-1 rounded-full shadow-md text-sm font-semibold">
                 Tema Claro
-              </div>
-            </div>
-
-            {/* Elemento Flutuante 1 (Template Escuro) */}
-            <motion.div
-              className="absolute top-0 -left-16 bg-white p-4 rounded-xl shadow-lg transform -rotate-12 hover:rotate-0 transition-all duration-500"
-              whileHover={{ scale: 1.1, rotate: 0 }}
-            >
-              <div className="w-32 aspect-[3/4] rounded-lg overflow-hidden border border-gray-100">
-                <div className="w-full h-full overflow-y-auto">
-                  <SitePreview {...mockDataDark} />
-                </div>
-              </div>
-              {/* Etiqueta "Escuro" */}
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-3 py-1 rounded-full shadow-md text-xs font-semibold">
-                Tema Escuro
-              </div>
-            </motion.div>
-
-            {/* Elemento Flutuante 2 (Mensagem Decorativa) */}
-            <motion.div
-              className="absolute -bottom-12 right-8 bg-gradient-to-r from-pink-600 to-purple-800 text-white p-4 rounded-xl shadow-lg transform rotate-8 hover:rotate-0 transition-all duration-500"
-              whileHover={{ scale: 1.1, rotate: 0 }}
-            >
-              <div className="flex items-center space-x-3">
-                <Heart className="h-6 w-6 animate-pulse" />
-                <span className="text-lg font-semibold">Amor Eterno</span>
               </div>
             </motion.div>
 
@@ -306,11 +315,23 @@ const HeroSection = () => {
         }
         /* Ajustes para o preview dentro do mockup */
         .aspect-[3/4] > div {
-          transform: scale(0.3); /* Reduz o tamanho do conteúdo para caber no mockup */
+          transform: scale(0.35); /* Ajustado para melhor visualização */
           transform-origin: top center;
         }
         .aspect-[3/4] .min-h-screen {
           min-height: auto; /* Remove a altura mínima para caber no mockup */
+        }
+        /* Garantir que o conteúdo do mockup não quebre */
+        .aspect-[3/4] {
+          position: relative;
+          overflow: hidden;
+        }
+        .aspect-[3/4] > div {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
         }
       `}</style>
     </section>
