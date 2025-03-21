@@ -62,7 +62,7 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
           <img
-            src="../../public/Fashion-removebg-preview (2).png" // Substitua pelo caminho da sua logo
+            src="../public/Fashion-removebg-preview (2).png" // Substitua pelo caminho da sua logo
             alt="Logo"
             className="h-8 md:h-10 w-auto object-contain"
           />
